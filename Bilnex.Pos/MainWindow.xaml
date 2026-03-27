@@ -1,0 +1,133 @@
+<Window x:Class="Bilnex.Pos.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Bilnex POS"
+        Width="1440"
+        Height="820"
+        MinWidth="1180"
+        MinHeight="720"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="22" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Padding="28,24"
+                Background="{DynamicResource ShellHeaderBackgroundBrush}"
+                BorderBrush="{DynamicResource ShellHeaderBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="26"
+                Visibility="{Binding IsDashboardViewActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <Border Width="118"
+                            Height="30"
+                            Padding="12,6"
+                            Margin="0,0,0,14"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource ShellBadgeBackgroundBrush}"
+                            CornerRadius="15">
+                        <TextBlock Text="MAIN DASHBOARD"
+                                   Foreground="{DynamicResource ShellBadgeTextBrush}"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+
+                    <TextBlock Text="{Binding AppTitle}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="34"
+                               FontWeight="Bold" />
+
+                    <TextBlock Margin="0,10,0,0"
+                               Text="Fast access to retail operations, sales flow and daily store management."
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="15" />
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        MinWidth="390"
+                        Padding="18,16"
+                        Margin="24,0,0,0"
+                        Background="{DynamicResource ShellUserPanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource ShellHeaderBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="20"
+                        VerticalAlignment="Center">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Width="46"
+                                Height="46"
+                                Background="{DynamicResource ShellUserBadgeBackgroundBrush}"
+                                CornerRadius="14"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="U"
+                                       Foreground="{DynamicResource ShellUserBadgeTextBrush}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+
+                        <StackPanel Grid.Column="2"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentUser}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       FontSize="15"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Margin="0,5,0,0"
+                                       Text="{Binding BranchName}"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="13" />
+                        </StackPanel>
+
+                        <Button Grid.Column="4"
+                                Width="108"
+                                Height="42"
+                                Command="{Binding ExitCommand}"
+                                Background="{DynamicResource ShellExitBackgroundBrush}"
+                                Foreground="White"
+                                BorderThickness="0"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Content="Exit" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="2"
+                Grid.RowSpan="3"
+                Padding="20"
+                Background="{DynamicResource ShellContentBackgroundBrush}"
+                BorderBrush="{DynamicResource ShellContentBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="28">
+            <ContentControl Content="{Binding CurrentView}" />
+        </Border>
+    </Grid>
+</Window>

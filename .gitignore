@@ -1,0 +1,17 @@
+.vs/
+.idea/
+.vscode/
+
+**/bin/
+**/obj/
+**/.vs/
+
+.dotnet-cli/
+.nuget/
+
+*.user
+*.suo
+*.cache
+*.pdb
+
+AppData/
