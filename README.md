@@ -2,6 +2,10 @@
 
 Bilnex POS, WPF ve MVVM ile gelistirilmis modern bir perakende satis uygulamasi prototipidir. Proje; hizli urun ekleme, barkod akisi, odeme alma, fis olusturma, askiya alma ve ayar yonetimi gibi temel kasa senaryolarini kapsar.
 
+## Ekran Goruntusu
+
+![Bilnex POS Dashboard](docs/images/bilnex-pos-dashboard.png)
+
 ## Ozellikler
 
 - WPF tabanli modern POS arayuzu
