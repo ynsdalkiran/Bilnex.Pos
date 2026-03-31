@@ -14,6 +14,13 @@ public sealed class PosSettingsService
     private string _defaultPaymentMethod = "Cash";
     private string _theme = "Dark";
     private string _receiptPrinterName = "Default Printer";
+    private string _priceChangeMode = "Percentage";
+    private decimal _priceChangeValue = 0m;
+    private bool _requirePriceApproval = true;
+    private string _labelTemplate = "50x30";
+    private string _labelPrinterName = "Default Label Printer";
+    private int _labelCopyCount = 1;
+    private bool _printBarcodeOnLabel = true;
 
     private PosSettingsService()
     {
@@ -53,6 +60,48 @@ public sealed class PosSettingsService
         private set => _receiptPrinterName = value;
     }
 
+    public string PriceChangeMode
+    {
+        get => _priceChangeMode;
+        private set => _priceChangeMode = value;
+    }
+
+    public decimal PriceChangeValue
+    {
+        get => _priceChangeValue;
+        private set => _priceChangeValue = value;
+    }
+
+    public bool RequirePriceApproval
+    {
+        get => _requirePriceApproval;
+        private set => _requirePriceApproval = value;
+    }
+
+    public string LabelTemplate
+    {
+        get => _labelTemplate;
+        private set => _labelTemplate = value;
+    }
+
+    public string LabelPrinterName
+    {
+        get => _labelPrinterName;
+        private set => _labelPrinterName = value;
+    }
+
+    public int LabelCopyCount
+    {
+        get => _labelCopyCount;
+        private set => _labelCopyCount = value;
+    }
+
+    public bool PrintBarcodeOnLabel
+    {
+        get => _printBarcodeOnLabel;
+        private set => _printBarcodeOnLabel = value;
+    }
+
     public void UpdateQuickAmounts(IEnumerable<decimal> amounts)
     {
         ApplyQuickAmounts(amounts);
@@ -86,6 +135,30 @@ public sealed class PosSettingsService
     public void ResetGeneralSettings()
     {
         ApplyGeneralSettings("Cash", "Dark", "Default Printer");
+        SaveSettings();
+    }
+
+    public void UpdatePriceChangeSettings(string mode, decimal value, bool requireApproval)
+    {
+        ApplyPriceChangeSettings(mode, value, requireApproval);
+        SaveSettings();
+    }
+
+    public void ResetPriceChangeSettings()
+    {
+        ApplyPriceChangeSettings("Percentage", 0m, true);
+        SaveSettings();
+    }
+
+    public void UpdateLabelPrintSettings(string template, string printerName, int copyCount, bool printBarcode)
+    {
+        ApplyLabelPrintSettings(template, printerName, copyCount, printBarcode);
+        SaveSettings();
+    }
+
+    public void ResetLabelPrintSettings()
+    {
+        ApplyLabelPrintSettings("50x30", "Default Label Printer", 1, true);
         SaveSettings();
     }
 
@@ -128,6 +201,15 @@ public sealed class PosSettingsService
                 settings.DefaultPaymentMethod,
                 settings.Theme,
                 settings.ReceiptPrinterName);
+            ApplyPriceChangeSettings(
+                settings.PriceChangeMode,
+                settings.PriceChangeValue,
+                settings.RequirePriceApproval);
+            ApplyLabelPrintSettings(
+                settings.LabelTemplate,
+                settings.LabelPrinterName,
+                settings.LabelCopyCount,
+                settings.PrintBarcodeOnLabel);
             SaveSettings();
         }
         catch
@@ -150,7 +232,14 @@ public sealed class PosSettingsService
                 .ToList(),
             DefaultPaymentMethod = DefaultPaymentMethod,
             Theme = Theme,
-            ReceiptPrinterName = ReceiptPrinterName
+            ReceiptPrinterName = ReceiptPrinterName,
+            PriceChangeMode = PriceChangeMode,
+            PriceChangeValue = PriceChangeValue,
+            RequirePriceApproval = RequirePriceApproval,
+            LabelTemplate = LabelTemplate,
+            LabelPrinterName = LabelPrinterName,
+            LabelCopyCount = LabelCopyCount,
+            PrintBarcodeOnLabel = PrintBarcodeOnLabel
         };
 
         var json = JsonSerializer.Serialize(settings, _jsonOptions);
@@ -163,6 +252,8 @@ public sealed class PosSettingsService
         ApplyQuickAmounts(new[] { 50m, 100m, 200m, 500m, 1000m });
         ApplyPaymentMethods(new[] { "Cash", "Card" });
         ApplyGeneralSettings("Cash", "Dark", "Default Printer");
+        ApplyPriceChangeSettings("Percentage", 0m, true);
+        ApplyLabelPrintSettings("50x30", "Default Label Printer", 1, true);
     }
 
     private void ApplyQuickAmounts(IEnumerable<decimal> amounts)
@@ -241,6 +332,42 @@ public sealed class PosSettingsService
         };
     }
 
+    private void ApplyPriceChangeSettings(string? mode, decimal value, bool requireApproval)
+    {
+        PriceChangeMode = NormalizePriceChangeMode(mode);
+        PriceChangeValue = decimal.Round(Math.Max(-100m, Math.Min(100000m, value)), 2);
+        RequirePriceApproval = requireApproval;
+    }
+
+    private void ApplyLabelPrintSettings(string? template, string? printerName, int copyCount, bool printBarcode)
+    {
+        LabelTemplate = NormalizeLabelTemplate(template);
+        LabelPrinterName = string.IsNullOrWhiteSpace(printerName)
+            ? "Default Label Printer"
+            : printerName.Trim();
+        LabelCopyCount = Math.Max(1, Math.Min(100, copyCount));
+        PrintBarcodeOnLabel = printBarcode;
+    }
+
+    private static string NormalizePriceChangeMode(string? mode)
+    {
+        return mode?.Trim().ToLowerInvariant() switch
+        {
+            "fixed" => "Fixed",
+            _ => "Percentage"
+        };
+    }
+
+    private static string NormalizeLabelTemplate(string? template)
+    {
+        return template?.Trim() switch
+        {
+            "58x40" => "58x40",
+            "100x70" => "100x70",
+            _ => "50x30"
+        };
+    }
+
     private sealed class PosSettingsFile
     {
         public List<decimal> QuickAmounts { get; set; } = new();
@@ -252,5 +379,19 @@ public sealed class PosSettingsService
         public string Theme { get; set; } = "Dark";
 
         public string ReceiptPrinterName { get; set; } = "Default Printer";
+
+        public string PriceChangeMode { get; set; } = "Percentage";
+
+        public decimal PriceChangeValue { get; set; }
+
+        public bool RequirePriceApproval { get; set; } = true;
+
+        public string LabelTemplate { get; set; } = "50x30";
+
+        public string LabelPrinterName { get; set; } = "Default Label Printer";
+
+        public int LabelCopyCount { get; set; } = 1;
+
+        public bool PrintBarcodeOnLabel { get; set; } = true;
     }
 }

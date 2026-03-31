@@ -54,8 +54,17 @@
                             Height="46"
                             Margin="16,0,0,0"
                             Command="{Binding DataContext.DashboardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            Style="{StaticResource TileButtonStyle}"
-                            Content="Back" />
+                            Style="{StaticResource CompactNavButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE72B;"
+                                       Margin="0,0,8,0"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="13"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="Geri"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </DockPanel>
 
                 <Grid Grid.Row="2">

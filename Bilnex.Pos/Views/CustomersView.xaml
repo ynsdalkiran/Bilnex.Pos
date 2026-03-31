@@ -14,6 +14,8 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="18" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="24" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -35,11 +37,77 @@
                         Height="42"
                         Margin="24,0,0,0"
                         Command="{Binding DataContext.DashboardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                        Style="{StaticResource TileButtonStyle}"
-                        Content="Back" />
+                        Style="{StaticResource CompactNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72B;"
+                                   Margin="0,0,8,0"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="13"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="Geri"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </DockPanel>
 
-            <Border Grid.Row="2"
+            <UniformGrid Grid.Row="2"
+                         Columns="3">
+                <Button Margin="0,0,12,0"
+                        Command="{Binding DataContext.DashboardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Style="{StaticResource MetroMiniTileStyle}"
+                        Background="{DynamicResource MetroTileSlateBrush}">
+                    <StackPanel>
+                        <TextBlock Text="&#xE80F;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="20" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Dashboard"
+                                   FontSize="18"
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Text="Return to home tiles"
+                                   FontSize="12"
+                                   Opacity="0.84" />
+                    </StackPanel>
+                </Button>
+                <Button Margin="0,0,12,0"
+                        Command="{Binding DataContext.CustomersCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Style="{StaticResource MetroMiniTileStyle}"
+                        Background="{DynamicResource MetroTileBlueBrush}">
+                    <StackPanel>
+                        <TextBlock Text="&#xE77B;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="20" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Customers"
+                                   FontSize="18"
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Text="Customer menu"
+                                   FontSize="12"
+                                   Opacity="0.84" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding DataContext.ProjectSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        Style="{StaticResource MetroMiniTileStyle}"
+                        Background="{DynamicResource MetroTilePurpleBrush}">
+                    <StackPanel>
+                        <TextBlock Text="&#xE713;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="20" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Settings"
+                                   FontSize="18"
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Text="Edit POS options"
+                                   FontSize="12"
+                                   Opacity="0.84" />
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+
+            <Border Grid.Row="4"
                     Padding="24"
                     Background="#111827"
                     BorderBrush="{StaticResource BorderBrushDark}"

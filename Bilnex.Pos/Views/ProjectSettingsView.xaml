@@ -14,7 +14,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="24" />
+                <RowDefinition Height="18" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -25,7 +25,7 @@
                                FontSize="32"
                                FontWeight="Bold" />
                     <TextBlock Margin="0,8,0,0"
-                               Text="POS hizli odeme tutarlarini yonetin"
+                               Text="POS ayarlarini kategori bazli olarak yonetin"
                                Foreground="{StaticResource TextMutedBrush}"
                                FontSize="14" />
                 </StackPanel>
@@ -35,330 +35,581 @@
                         Height="42"
                         Margin="24,0,0,0"
                         Command="{Binding DataContext.DashboardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                        Style="{StaticResource TileButtonStyle}"
-                        Content="Back" />
+                        Style="{StaticResource CompactNavButtonStyle}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72B;"
+                                   Margin="0,0,8,0"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="13"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="Geri"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             </DockPanel>
 
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.2*" />
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="1*" />
-                </Grid.ColumnDefinitions>
+            <TabControl Grid.Row="2"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        TabStripPlacement="Left">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                        <Setter Property="FontSize" Value="15" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Width" Value="220" />
+                        <Setter Property="Height" Value="72" />
+                        <Setter Property="Margin" Value="0,0,14,10" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TabItem">
+                                    <Border x:Name="RootBorder"
+                                            Background="#111827"
+                                            BorderBrush="{StaticResource BorderBrushDark}"
+                                            BorderThickness="1"
+                                            CornerRadius="16">
+                                        <ContentPresenter Margin="18,14"
+                                                          HorizontalAlignment="Left"
+                                                          VerticalAlignment="Center"
+                                                          ContentSource="Header" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="RootBorder" Property="Background" Value="#162033" />
+                                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="#475569" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.Resources>
 
-                <Border Padding="24"
-                        Background="#111827"
-                        BorderBrush="{StaticResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="20">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="12" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="12" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="28" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="12" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="12" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="12" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Text="Quick Amounts"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontSize="24"
-                                   FontWeight="SemiBold" />
-
-                        <TextBlock Grid.Row="2"
-                                   Text="Virgul ile ayirarak girin. Ornek: 50, 100, 200, 500, 1000"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="14"
-                                   TextWrapping="Wrap" />
-
-                        <TextBox Grid.Row="4"
-                                 Height="48"
-                                 Padding="14,10"
-                                 Text="{Binding QuickAmountsText, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="20"
-                                 Background="#0B1220"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 BorderBrush="{StaticResource BorderBrushDark}"
-                                 BorderThickness="1"
-                                 VerticalContentAlignment="Center" />
-
-                        <StackPanel Grid.Row="6"
-                                    Orientation="Horizontal">
-                            <Button Width="160"
-                                    Height="46"
-                                    Command="{Binding SaveQuickAmountsCommand}"
-                                    Background="#0F766E"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Content="Kaydet" />
-
-                            <Button Width="160"
-                                    Height="46"
-                                    Margin="12,0,0,0"
-                                    Command="{Binding ResetQuickAmountsCommand}"
-                                    Background="#334155"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Content="Varsayilan" />
-                        </StackPanel>
-
-                        <TextBlock Grid.Row="8"
-                                   Text="Payment Methods"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontSize="24"
-                                   FontWeight="SemiBold" />
-
-                        <TextBlock Grid.Row="10"
-                                   Text="Desteklenen tipler: Cash, Card. Ornek: Cash, Card"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="14"
-                                   TextWrapping="Wrap" />
-
-                        <StackPanel Grid.Row="12">
-                            <TextBox Height="48"
-                                     Padding="14,10"
-                                     Text="{Binding PaymentMethodsText, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="20"
-                                     Background="#0B1220"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     BorderBrush="{StaticResource BorderBrushDark}"
-                                     BorderThickness="1"
-                                     VerticalContentAlignment="Center" />
-
-                            <StackPanel Orientation="Horizontal"
-                                        Margin="0,18,0,0">
-                                <Button Width="160"
-                                        Height="46"
-                                        Command="{Binding SavePaymentMethodsCommand}"
-                                        Background="#0F766E"
-                                        Foreground="White"
-                                        BorderThickness="0"
-                                        FontSize="17"
-                                        FontWeight="SemiBold"
-                                        Content="Kaydet" />
-
-                                <Button Width="160"
-                                        Height="46"
-                                        Margin="12,0,0,0"
-                                        Command="{Binding ResetPaymentMethodsCommand}"
-                                        Background="#334155"
-                                        Foreground="White"
-                                        BorderThickness="0"
-                                        FontSize="17"
-                                        FontWeight="SemiBold"
-                                        Content="Varsayilan" />
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE1D3;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Hizli Tutarlar"
+                                           VerticalAlignment="Center" />
                             </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="Nakit butonlari" FontSize="12" Opacity="0.8" />
                         </StackPanel>
-
-                        <TextBlock Grid.Row="14"
-                                   Text="General Settings"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontSize="24"
-                                   FontWeight="SemiBold" />
-
-                        <TextBlock Grid.Row="16"
-                                   Text="Varsayilan odeme tipi"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="14" />
-
-                        <TextBox Grid.Row="18"
-                                 Height="48"
-                                 Padding="14,10"
-                                 Text="{Binding DefaultPaymentMethod, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="20"
-                                 Background="#0B1220"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 BorderBrush="{StaticResource BorderBrushDark}"
-                                 BorderThickness="1"
-                                 VerticalContentAlignment="Center" />
-
-                        <TextBlock Grid.Row="20"
-                                   Text="Tema (Dark veya Light)"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="14" />
-
-                        <TextBox Grid.Row="22"
-                                 Height="48"
-                                 Padding="14,10"
-                                 Text="{Binding Theme, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="20"
-                                 Background="#0B1220"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 BorderBrush="{StaticResource BorderBrushDark}"
-                                 BorderThickness="1"
-                                 VerticalContentAlignment="Center" />
-
-                        <TextBlock Grid.Row="24"
-                                   Text="Fis yazici adi"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="14" />
-
-                        <TextBox Grid.Row="26"
-                                 Height="48"
-                                 Padding="14,10"
-                                 Text="{Binding ReceiptPrinterName, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="20"
-                                 Background="#0B1220"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 BorderBrush="{StaticResource BorderBrushDark}"
-                                 BorderThickness="1"
-                                 VerticalContentAlignment="Center" />
-
-                        <StackPanel Grid.Row="28"
-                                    Orientation="Horizontal">
-                            <Button Width="160"
-                                    Height="46"
-                                    Command="{Binding SaveGeneralSettingsCommand}"
-                                    Background="#0F766E"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Content="Kaydet" />
-
-                            <Button Width="160"
-                                    Height="46"
-                                    Margin="12,0,0,0"
-                                    Command="{Binding ResetGeneralSettingsCommand}"
-                                    Background="#334155"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Content="Varsayilan" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Border Grid.Column="2"
-                        Padding="24"
-                        Background="#0F172A"
-                        BorderBrush="{StaticResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="20">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock Text="Current Setup"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontSize="22"
-                                   FontWeight="SemiBold" />
-
-                        <Grid Grid.Row="2">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="12" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="20" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="12" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Text="Quick Amount Buttons"
-                                       Foreground="{StaticResource TextMutedBrush}"
-                                       FontSize="14"
-                                       FontWeight="SemiBold" />
-
-                            <ItemsControl Grid.Row="2"
-                                          ItemsSource="{Binding QuickAmounts}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Columns="2" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,0,12,12"
-                                                Padding="16"
-                                                Background="#162033"
-                                                BorderBrush="#27344A"
-                                                BorderThickness="1"
-                                                CornerRadius="16">
-                                            <TextBlock Text="{Binding Title}"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <TextBlock Grid.Row="4"
-                                       Text="Payment Buttons"
-                                       Foreground="{StaticResource TextMutedBrush}"
-                                       FontSize="14"
-                                       FontWeight="SemiBold" />
-
-                            <ItemsControl Grid.Row="6"
-                                          ItemsSource="{Binding PaymentMethods}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Columns="2" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,0,12,12"
-                                                Padding="16"
-                                                Background="#162033"
-                                                BorderBrush="#27344A"
-                                                BorderThickness="1"
-                                                CornerRadius="16">
-                                            <TextBlock Text="{Binding Title}"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
-
-                        <Border Grid.Row="4"
-                                Padding="14,12"
-                                Background="#0B1220"
-                                CornerRadius="14">
-                            <TextBlock Text="{Binding StatusMessage}"
-                                       Foreground="{StaticResource TextMutedBrush}"
-                                       FontSize="13"
-                                       TextWrapping="Wrap" />
+                    </TabItem.Header>
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="24" Background="#111827" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Hizli Tutar Ayarlari" Foreground="{StaticResource TextPrimaryBrush}" FontSize="24" FontWeight="SemiBold" />
+                                <TextBlock Grid.Row="2" Text="Virgul ile ayirarak girin. Ornek: 50, 100, 200, 500, 1000" Foreground="{StaticResource TextMutedBrush}" FontSize="14" TextWrapping="Wrap" />
+                                <TextBox Grid.Row="4" Height="48" Padding="14,10" Text="{Binding QuickAmountsText, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="#0B1220" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" VerticalContentAlignment="Center" />
+                                <StackPanel Grid.Row="6" Orientation="Horizontal">
+                                    <Button Width="160" Height="46" Command="{Binding SaveQuickAmountsCommand}" Background="#0F766E" Foreground="White" BorderThickness="0" FontSize="17" FontWeight="SemiBold" Content="Kaydet" />
+                                    <Button Width="160" Height="46" Margin="12,0,0,0" Command="{Binding ResetQuickAmountsCommand}" Background="#334155" Foreground="White" BorderThickness="0" FontSize="17" FontWeight="SemiBold" Content="Varsayilan" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Padding="24" Background="#0F172A" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="14" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Mevcut Tutar Butonlari" Foreground="{StaticResource TextPrimaryBrush}" FontSize="22" FontWeight="SemiBold" />
+                                <ItemsControl Grid.Row="2" ItemsSource="{Binding QuickAmounts}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,12,12" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Border Grid.Row="4" Padding="14,12" Background="#0B1220" CornerRadius="14">
+                                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" />
+                                </Border>
+                            </Grid>
                         </Border>
                     </Grid>
-                </Border>
-            </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8C7;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Odeme Yontemleri"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="Nakit ve kart" FontSize="12" Opacity="0.8" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="24" Background="#111827" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Odeme Tipleri" Foreground="{StaticResource TextPrimaryBrush}" FontSize="24" FontWeight="SemiBold" />
+                                <TextBlock Grid.Row="2" Text="Desteklenen tipler: Cash, Card. Ornek: Cash, Card" Foreground="{StaticResource TextMutedBrush}" FontSize="14" TextWrapping="Wrap" />
+                                <TextBox Grid.Row="4" Height="48" Padding="14,10" Text="{Binding PaymentMethodsText, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="#0B1220" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" VerticalContentAlignment="Center" />
+                                <StackPanel Grid.Row="6" Orientation="Horizontal">
+                                    <Button Width="160" Height="46" Command="{Binding SavePaymentMethodsCommand}" Background="#0F766E" Foreground="White" BorderThickness="0" FontSize="17" FontWeight="SemiBold" Content="Kaydet" />
+                                    <Button Width="160" Height="46" Margin="12,0,0,0" Command="{Binding ResetPaymentMethodsCommand}" Background="#334155" Foreground="White" BorderThickness="0" FontSize="17" FontWeight="SemiBold" Content="Varsayilan" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Padding="24" Background="#0F172A" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="14" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Aktif Odeme Butonlari" Foreground="{StaticResource TextPrimaryBrush}" FontSize="22" FontWeight="SemiBold" />
+                                <ItemsControl Grid.Row="2" ItemsSource="{Binding PaymentMethods}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,12,12" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Border Grid.Row="4" Padding="14,12" Background="#0B1220" CornerRadius="14">
+                                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE713;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Genel Ayarlar"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="Tema ve cihaz" FontSize="12" Opacity="0.8" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="24" Background="#111827" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Genel POS Ayarlari" Foreground="{StaticResource TextPrimaryBrush}" FontSize="24" FontWeight="SemiBold" />
+                                <TextBlock Grid.Row="2" Text="Varsayilan odeme tipi" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                <ComboBox Grid.Row="4" Height="48" Padding="10,6" ItemsSource="{Binding DefaultPaymentMethodOptions}" SelectedItem="{Binding DefaultPaymentMethod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="18" Background="#0B1220" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" VerticalContentAlignment="Center" />
+                                <TextBlock Grid.Row="6" Text="Tema secimi" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                <ComboBox Grid.Row="8" Height="48" Padding="10,6" ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding Theme, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="18" Background="#0B1220" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" VerticalContentAlignment="Center" />
+                                <TextBlock Grid.Row="10" Text="Fis yazici adi" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                <TextBox Grid.Row="12" Height="48" Padding="14,10" Text="{Binding ReceiptPrinterName, UpdateSourceTrigger=PropertyChanged}" FontSize="20" Background="#0B1220" Foreground="{StaticResource TextPrimaryBrush}" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" VerticalContentAlignment="Center" />
+                                <StackPanel Grid.Row="14" Orientation="Horizontal">
+                                    <Button Width="160" Height="46" Command="{Binding SaveGeneralSettingsCommand}" Background="#0F766E" Foreground="White" BorderThickness="0" FontSize="17" FontWeight="SemiBold" Content="Kaydet" />
+                                    <Button Width="160" Height="46" Margin="12,0,0,0" Command="{Binding ResetGeneralSettingsCommand}" Background="#334155" Foreground="White" BorderThickness="0" FontSize="17" FontWeight="SemiBold" Content="Varsayilan" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Padding="24" Background="#0F172A" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Anlik Ozet" Foreground="{StaticResource TextPrimaryBrush}" FontSize="22" FontWeight="SemiBold" />
+                                <Border Grid.Row="2" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Varsayilan Odeme" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding DefaultPaymentMethod}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Row="4" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Tema" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding Theme}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Row="6" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Fis Yazici" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding ReceiptPrinterName}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Row="8" Padding="14,12" Background="#0B1220" CornerRadius="14" VerticalAlignment="Bottom">
+                                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8AB;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Fiyat Degisimi"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="Fiyat guncelleme" FontSize="12" Opacity="0.8" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="24" Background="#111827" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Fiyat Degisimi Ayarlari" Foreground="{StaticResource TextPrimaryBrush}" FontSize="24" FontWeight="SemiBold" />
+                                <TextBlock Grid.Row="2"
+                                           Text="Fiyat degisim tipi ve uygulanacak degeri belirleyin."
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="14"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="4" Text="Degisim tipi" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                <ComboBox Grid.Row="6"
+                                          Height="48"
+                                          Padding="10,6"
+                                          ItemsSource="{Binding PriceChangeModeOptions}"
+                                          SelectedItem="{Binding PriceChangeMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          FontSize="18"
+                                          Background="#0B1220"
+                                          Foreground="{StaticResource TextPrimaryBrush}"
+                                          BorderBrush="{StaticResource BorderBrushDark}"
+                                          BorderThickness="1"
+                                          VerticalContentAlignment="Center" />
+                                <Grid Grid.Row="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.1*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="0.9*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Deger"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="14" />
+                                        <TextBox Margin="0,12,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding PriceChangeValue, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="18"
+                                                 Background="#0B1220"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="2"
+                                              Content="Onay zorunlu olsun"
+                                              IsChecked="{Binding RequirePriceApproval, Mode=TwoWay}"
+                                              Foreground="{StaticResource TextPrimaryBrush}"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              VerticalAlignment="Center" />
+                                </Grid>
+                                <StackPanel Grid.Row="10" Orientation="Horizontal">
+                                    <Button Width="160"
+                                            Height="46"
+                                            Command="{Binding SavePriceChangeSettingsCommand}"
+                                            Background="#0F766E"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Content="Kaydet" />
+                                    <Button Width="160"
+                                            Height="46"
+                                            Margin="12,0,0,0"
+                                            Command="{Binding ResetPriceChangeSettingsCommand}"
+                                            Background="#334155"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Content="Varsayilan" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Padding="24" Background="#0F172A" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <StackPanel>
+                                <TextBlock Text="Anlik Ozet" Foreground="{StaticResource TextPrimaryBrush}" FontSize="22" FontWeight="SemiBold" />
+                                <Border Margin="0,18,0,0" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Degisim Tipi" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding PriceChangeMode}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Margin="0,12,0,0" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Deger" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding PriceChangeValue}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Margin="0,12,0,0" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Onay Akisi" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding RequirePriceApproval}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Margin="0,18,0,0" Padding="14,12" Background="#0B1220" CornerRadius="14">
+                                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE749;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Etiket Basimi"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="Etiket ve raf ciktilari" FontSize="12" Opacity="0.8" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="24" Background="#111827" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Etiket Basimi Ayarlari" Foreground="{StaticResource TextPrimaryBrush}" FontSize="24" FontWeight="SemiBold" />
+                                <TextBlock Grid.Row="2"
+                                           Text="Etiket sablonu, yazici ve kopya ayarlarini belirleyin."
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="14"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="4" Text="Etiket sablonu" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                <ComboBox Grid.Row="6"
+                                          Height="48"
+                                          Padding="10,6"
+                                          ItemsSource="{Binding LabelTemplateOptions}"
+                                          SelectedItem="{Binding LabelTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          FontSize="18"
+                                          Background="#0B1220"
+                                          Foreground="{StaticResource TextPrimaryBrush}"
+                                          BorderBrush="{StaticResource BorderBrushDark}"
+                                          BorderThickness="1"
+                                          VerticalContentAlignment="Center" />
+                                <Grid Grid.Row="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.2*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="0.8*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Etiket yazici adi" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                        <TextBox Margin="0,12,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding LabelPrinterName, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="18"
+                                                 Background="#0B1220"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Kopya sayisi" Foreground="{StaticResource TextMutedBrush}" FontSize="14" />
+                                        <TextBox Margin="0,12,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding LabelCopyCount, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="18"
+                                                 Background="#0B1220"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel Grid.Row="10" Orientation="Horizontal">
+                                    <CheckBox Content="Barkod etikette gosterilsin"
+                                              IsChecked="{Binding PrintBarcodeOnLabel, Mode=TwoWay}"
+                                              Foreground="{StaticResource TextPrimaryBrush}"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              VerticalAlignment="Center" />
+                                    <Button Width="160"
+                                            Height="46"
+                                            Margin="24,0,0,0"
+                                            Command="{Binding SaveLabelPrintSettingsCommand}"
+                                            Background="#0F766E"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Content="Kaydet" />
+                                    <Button Width="160"
+                                            Height="46"
+                                            Margin="12,0,0,0"
+                                            Command="{Binding ResetLabelPrintSettingsCommand}"
+                                            Background="#334155"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Content="Varsayilan" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border Grid.Column="2" Padding="24" Background="#0F172A" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <StackPanel>
+                                <TextBlock Text="Anlik Ozet" Foreground="{StaticResource TextPrimaryBrush}" FontSize="22" FontWeight="SemiBold" />
+                                <Border Margin="0,18,0,0" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Sablon" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding LabelTemplate}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Margin="0,12,0,0" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Yazici" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding LabelPrinterName}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Margin="0,12,0,0" Padding="16" Background="#162033" BorderBrush="#27344A" BorderThickness="1" CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Kopya / Barkod" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding LabelCopyCount}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="20" FontWeight="SemiBold" />
+                                        <TextBlock Margin="0,6,0,0" Text="{Binding PrintBarcodeOnLabel}" Foreground="{StaticResource TextMutedBrush}" FontSize="13" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Margin="0,18,0,0" Padding="14,12" Background="#0B1220" CornerRadius="14">
+                                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextMutedBrush}" FontSize="13" TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Border>
 </UserControl>

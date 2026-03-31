@@ -18,6 +18,12 @@
     <SolidColorBrush x:Key="ShellExitBackgroundBrush" Color="#991B1B" />
     <SolidColorBrush x:Key="ShellContentBackgroundBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="ShellContentBorderBrush" Color="#D7E0EC" />
+    <SolidColorBrush x:Key="MetroTileBlueBrush" Color="#0078D7" />
+    <SolidColorBrush x:Key="MetroTileTealBrush" Color="#008272" />
+    <SolidColorBrush x:Key="MetroTileGreenBrush" Color="#107C10" />
+    <SolidColorBrush x:Key="MetroTileOrangeBrush" Color="#D83B01" />
+    <SolidColorBrush x:Key="MetroTilePurpleBrush" Color="#5C2D91" />
+    <SolidColorBrush x:Key="MetroTileSlateBrush" Color="#4A5459" />
 
     <Style x:Key="TileButtonStyle" TargetType="Button">
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
@@ -58,6 +64,45 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
                             <Setter TargetName="RootBorder" Property="BorderBrush" Value="#94A3B8" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="RootBorder" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.985" ScaleY="0.985" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CompactNavButtonStyle" TargetType="Button" BasedOn="{StaticResource TileButtonStyle}">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="16"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+                            <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="RootBorder" Property="RenderTransform">
@@ -152,5 +197,50 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="MetroMenuTileStyle" TargetType="Button">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="4"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Stretch"
+                                          RecognizesAccessKey="True"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RootBorder" Property="Opacity" Value="0.9" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="RootBorder" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.985" ScaleY="0.985" />
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="MetroHeroTileStyle" TargetType="Button" BasedOn="{StaticResource MetroMenuTileStyle}">
+        <Setter Property="Padding" Value="24" />
+    </Style>
+
+    <Style x:Key="MetroMiniTileStyle" TargetType="Button" BasedOn="{StaticResource MetroMenuTileStyle}">
+        <Setter Property="Padding" Value="14" />
     </Style>
 </ResourceDictionary>

@@ -8,186 +8,356 @@
              d:DesignWidth="1000">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1.5*" />
-            <ColumnDefinition Width="18" />
+            <ColumnDefinition Width="1.2*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="16" />
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.05*" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="0.95*" />
+        </Grid.RowDefinitions>
 
-        <Button Grid.Column="0"
+        <Button Grid.Row="0"
+                Grid.Column="0"
+                Grid.RowSpan="3"
                 Command="{Binding DataContext.PosSalesCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                Style="{StaticResource PrimaryTileButtonStyle}"
-                HorizontalContentAlignment="Left"
-                VerticalContentAlignment="Top">
-            <StackPanel>
+                Style="{StaticResource MetroHeroTileStyle}"
+                Background="{DynamicResource MetroTileGreenBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
                 <TextBlock Text="&#xE719;"
                            FontFamily="Segoe MDL2 Assets"
-                           FontSize="34"
-                           Foreground="#BBF7D0" />
-                <TextBlock Text="POS Sales"
-                           Margin="0,14,0,0"
-                           FontSize="36"
-                           FontWeight="Bold"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Margin="0,10,0,0"
-                           Text="New sale, barcode scan, payment, receipt"
-                           FontSize="16"
-                           Foreground="#D1FAE5" />
-            </StackPanel>
+                           FontSize="42" />
+
+                <StackPanel Grid.Row="1"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="POS Satis"
+                               FontSize="38"
+                               FontWeight="Bold" />
+                    <TextBlock Margin="0,12,0,0"
+                               Text="Barkod okut, sepeti yonet ve odeme al"
+                               FontSize="17"
+                               Opacity="0.92"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="2">
+                    <TextBlock Text="AKTIF SATIS ALANI"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Opacity="0.82" />
+                    <TextBlock Margin="0,8,0,0"
+                               Text="Yeni satis baslat"
+                               FontSize="15" />
+                </StackPanel>
+            </Grid>
         </Button>
 
-        <Grid Grid.Column="2">
+        <Button Grid.Row="0"
+                Grid.Column="2"
+                Command="{Binding DataContext.CustomersCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                Style="{StaticResource MetroMenuTileStyle}"
+                Background="{DynamicResource MetroTileBlueBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="&#xE77B;"
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="30" />
+
+                <StackPanel Grid.Row="1"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Musteriler"
+                               FontSize="24"
+                               FontWeight="Bold" />
+                    <TextBlock Margin="0,10,0,0"
+                               Text="Cari kartlar, bakiyeler ve sadakat"
+                               FontSize="14"
+                               Opacity="0.92"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2"
+                           Text="CARI"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Opacity="0.82" />
+            </Grid>
+        </Button>
+
+        <Button Grid.Row="0"
+                Grid.Column="4"
+                Command="{Binding DataContext.InventoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                Style="{StaticResource MetroMenuTileStyle}"
+                Background="{DynamicResource MetroTileOrangeBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="&#xE8B7;"
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="30" />
+
+                <StackPanel Grid.Row="1"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Stok"
+                               FontSize="24"
+                               FontWeight="Bold" />
+                    <TextBlock Margin="0,10,0,0"
+                               Text="Stok hareketleri, sayim ve fiyat"
+                               FontSize="14"
+                               Opacity="0.92"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2"
+                           Text="ENVANTER"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Opacity="0.82" />
+            </Grid>
+        </Button>
+
+        <Button Grid.Row="0"
+                Grid.Column="6"
+                Command="{Binding DataContext.PriceChangeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                Style="{StaticResource MetroMenuTileStyle}"
+                Background="#B146C2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="&#xE8AB;"
+                           FontFamily="Segoe MDL2 Assets"
+                           FontSize="30" />
+
+                <StackPanel Grid.Row="1"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="Fiyat Degis"
+                               FontSize="24"
+                               FontWeight="Bold" />
+                    <TextBlock Margin="0,10,0,0"
+                               Text="Urun fiyatlarini hizli guncelle"
+                               FontSize="14"
+                               Opacity="0.92"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2"
+                           Text="FIYAT"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Opacity="0.82" />
+            </Grid>
+        </Button>
+
+        <Grid Grid.Row="2"
+              Grid.Column="2"
+              Grid.ColumnSpan="5">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="18" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="18" />
+                <RowDefinition Height="170" />
+                <RowDefinition Height="16" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="18" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <Button Grid.Row="0"
                     Grid.Column="0"
-                    Command="{Binding DataContext.CustomersCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    Style="{StaticResource TileButtonStyle}"
-                    HorizontalContentAlignment="Left"
-                    VerticalContentAlignment="Top">
-                <StackPanel>
-                    <Border Width="52"
-                            Height="52"
-                            Background="#172554"
-                            CornerRadius="14"
-                            HorizontalAlignment="Left">
-                        <TextBlock Text="C"
-                                   Foreground="#93C5FD"
+                    Command="{Binding DataContext.CashCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Style="{StaticResource MetroMenuTileStyle}"
+                    Background="{DynamicResource MetroTileTealBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="&#xEAFD;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="30" />
+
+                    <StackPanel Grid.Row="1"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Kasa"
                                    FontSize="22"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Margin="0,14,0,0"
-                               Text="Customers"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               FontSize="22"
-                               FontWeight="SemiBold" />
-                </StackPanel>
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Kasa bakiye ve manuel islemler"
+                                   FontSize="13"
+                                   Opacity="0.92"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2"
+                               Text="KASA"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Opacity="0.82" />
+                </Grid>
             </Button>
 
             <Button Grid.Row="0"
                     Grid.Column="2"
-                    Command="{Binding DataContext.InventoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    Style="{StaticResource TileButtonStyle}"
-                    HorizontalContentAlignment="Left"
-                    VerticalContentAlignment="Top">
-                <StackPanel>
-                    <Border Width="52"
-                            Height="52"
-                            Background="#3F2B13"
-                            CornerRadius="14"
-                            HorizontalAlignment="Left">
-                        <TextBlock Text="I"
-                                   Foreground="#FCD34D"
-                                   FontSize="22"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Margin="0,14,0,0"
-                               Text="Inventory"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               FontSize="22"
-                               FontWeight="SemiBold" />
-                </StackPanel>
-            </Button>
-
-            <Button Grid.Row="2"
-                    Grid.Column="0"
-                    Command="{Binding DataContext.CashCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    Style="{StaticResource TileButtonStyle}"
-                    HorizontalContentAlignment="Left"
-                    VerticalContentAlignment="Top">
-                <StackPanel>
-                    <Border Width="52"
-                            Height="52"
-                            Background="#173126"
-                            CornerRadius="14"
-                            HorizontalAlignment="Left">
-                        <TextBlock Text="$"
-                                   Foreground="#86EFAC"
-                                   FontSize="22"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Margin="0,14,0,0"
-                               Text="Cash"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               FontSize="22"
-                               FontWeight="SemiBold" />
-                </StackPanel>
-            </Button>
-
-            <Button Grid.Row="2"
-                    Grid.Column="2"
                     Command="{Binding DataContext.EndOfDayCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    Style="{StaticResource TileButtonStyle}"
-                    HorizontalContentAlignment="Left"
-                    VerticalContentAlignment="Top">
-                <StackPanel>
-                    <Border Width="52"
-                            Height="52"
-                            Background="#3E1F35"
-                            CornerRadius="14"
-                            HorizontalAlignment="Left">
-                        <TextBlock Text="E"
-                                   Foreground="#F9A8D4"
+                    Style="{StaticResource MetroMenuTileStyle}"
+                    Background="{DynamicResource MetroTilePurpleBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="&#xE823;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="30" />
+
+                    <StackPanel Grid.Row="1"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Gun Sonu"
                                    FontSize="22"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Margin="0,14,0,0"
-                               Text="End of Day"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               FontSize="22"
-                               FontWeight="SemiBold" />
-                </StackPanel>
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Z raporu, oturum kapama ve ozet"
+                                   FontSize="13"
+                                   Opacity="0.92"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2"
+                               Text="RAPOR"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Opacity="0.82" />
+                </Grid>
             </Button>
 
-            <Button Grid.Row="4"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="3"
-                    Command="{Binding DataContext.ProjectSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                    Style="{StaticResource TileButtonStyle}"
-                    HorizontalContentAlignment="Left"
-                    VerticalContentAlignment="Top">
-                <StackPanel>
-                    <Border Width="52"
-                            Height="52"
-                            Background="#2E2450"
-                            CornerRadius="14"
-                            HorizontalAlignment="Left">
-                        <TextBlock Text="S"
-                                   Foreground="#C4B5FD"
+            <Button Grid.Row="0"
+                    Grid.Column="4"
+                    Command="{Binding DataContext.LabelPrintCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Style="{StaticResource MetroMenuTileStyle}"
+                    Background="#2B579A">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="&#xE749;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="30" />
+
+                    <StackPanel Grid.Row="1"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Etiket Bas"
                                    FontSize="22"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="Project Settings"
-                               Margin="0,14,0,0"
-                               FontSize="24"
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Raf ve urun etiketlerini yazdir"
+                                   FontSize="13"
+                                   Opacity="0.92"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2"
+                               Text="ETIKET"
+                               FontSize="12"
                                FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Margin="0,10,0,0"
-                               Text="Company info, devices, receipt, pricing and app configuration"
-                               FontSize="14"
-                               Foreground="{StaticResource TextMutedBrush}" />
-                </StackPanel>
+                               Opacity="0.82" />
+                </Grid>
             </Button>
+
+            <Button Grid.Row="0"
+                    Grid.Column="6"
+                    Command="{Binding DataContext.ProjectSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    Style="{StaticResource MetroMenuTileStyle}"
+                    Background="{DynamicResource MetroTileSlateBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="&#xE713;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="30" />
+
+                    <StackPanel Grid.Row="1"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Ayarlar"
+                                   FontSize="22"
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,10,0,0"
+                                   Text="Yazici, odeme yontemi ve uygulama ayarlari"
+                                   FontSize="13"
+                                   Opacity="0.92"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2"
+                               Text="AYAR"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Opacity="0.82" />
+                </Grid>
+            </Button>
+
+            <Border Grid.Row="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="7"
+                    Padding="18"
+                    Background="#101B2E"
+                    CornerRadius="4">
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Text="Hizli Menu Ozeti"
+                                   Foreground="White"
+                                   FontSize="16"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Text="Microsoft tile mantigina uygun hizli erisim duzeni."
+                                   Foreground="#C4D2E4"
+                                   FontSize="13" />
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="8 MODUL"
+                               Foreground="#7DD3FC"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

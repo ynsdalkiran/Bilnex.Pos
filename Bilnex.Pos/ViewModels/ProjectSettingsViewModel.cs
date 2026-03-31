@@ -12,12 +12,22 @@ namespace Bilnex.Pos.ViewModels;
 
 public sealed class ProjectSettingsViewModel : ViewModelBase
 {
+    private static readonly IReadOnlyList<string> _themeOptions = new[] { "Dark", "Light" };
+    private static readonly IReadOnlyList<string> _priceChangeModeOptions = new[] { "Percentage", "Fixed" };
+    private static readonly IReadOnlyList<string> _labelTemplateOptions = new[] { "50x30", "58x40", "100x70" };
     private readonly PosSettingsService _settingsService;
     private string _quickAmountsText;
     private string _paymentMethodsText;
     private string _defaultPaymentMethod;
     private string _theme;
     private string _receiptPrinterName;
+    private string _priceChangeMode;
+    private string _priceChangeValue;
+    private bool _requirePriceApproval;
+    private string _labelTemplate;
+    private string _labelPrinterName;
+    private string _labelCopyCount;
+    private bool _printBarcodeOnLabel;
     private string _statusMessage = "Kaydetmek icin tutarlari virgul ile ayir.";
 
     public ProjectSettingsViewModel()
@@ -28,6 +38,13 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         _defaultPaymentMethod = _settingsService.DefaultPaymentMethod;
         _theme = _settingsService.Theme;
         _receiptPrinterName = _settingsService.ReceiptPrinterName;
+        _priceChangeMode = _settingsService.PriceChangeMode;
+        _priceChangeValue = _settingsService.PriceChangeValue.ToString("0.##", CultureInfo.InvariantCulture);
+        _requirePriceApproval = _settingsService.RequirePriceApproval;
+        _labelTemplate = _settingsService.LabelTemplate;
+        _labelPrinterName = _settingsService.LabelPrinterName;
+        _labelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
+        _printBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
 
         SaveQuickAmountsCommand = new RelayCommand(SaveQuickAmounts);
         ResetQuickAmountsCommand = new RelayCommand(ResetQuickAmounts);
@@ -35,11 +52,23 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         ResetPaymentMethodsCommand = new RelayCommand(ResetPaymentMethods);
         SaveGeneralSettingsCommand = new RelayCommand(SaveGeneralSettings);
         ResetGeneralSettingsCommand = new RelayCommand(ResetGeneralSettings);
+        SavePriceChangeSettingsCommand = new RelayCommand(SavePriceChangeSettings);
+        ResetPriceChangeSettingsCommand = new RelayCommand(ResetPriceChangeSettings);
+        SaveLabelPrintSettingsCommand = new RelayCommand(SaveLabelPrintSettings);
+        ResetLabelPrintSettingsCommand = new RelayCommand(ResetLabelPrintSettings);
     }
 
     public IEnumerable<QuickAmountOption> QuickAmounts => _settingsService.QuickAmounts;
 
     public IEnumerable<PaymentMethodOption> PaymentMethods => _settingsService.PaymentMethods;
+
+    public IEnumerable<string> DefaultPaymentMethodOptions => _settingsService.PaymentMethods.Select(x => x.Key);
+
+    public IEnumerable<string> ThemeOptions => _themeOptions;
+
+    public IEnumerable<string> PriceChangeModeOptions => _priceChangeModeOptions;
+
+    public IEnumerable<string> LabelTemplateOptions => _labelTemplateOptions;
 
     public string QuickAmountsText
     {
@@ -77,6 +106,48 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         set => SetProperty(ref _receiptPrinterName, value);
     }
 
+    public string PriceChangeMode
+    {
+        get => _priceChangeMode;
+        set => SetProperty(ref _priceChangeMode, value);
+    }
+
+    public string PriceChangeValue
+    {
+        get => _priceChangeValue;
+        set => SetProperty(ref _priceChangeValue, value);
+    }
+
+    public bool RequirePriceApproval
+    {
+        get => _requirePriceApproval;
+        set => SetProperty(ref _requirePriceApproval, value);
+    }
+
+    public string LabelTemplate
+    {
+        get => _labelTemplate;
+        set => SetProperty(ref _labelTemplate, value);
+    }
+
+    public string LabelPrinterName
+    {
+        get => _labelPrinterName;
+        set => SetProperty(ref _labelPrinterName, value);
+    }
+
+    public string LabelCopyCount
+    {
+        get => _labelCopyCount;
+        set => SetProperty(ref _labelCopyCount, value);
+    }
+
+    public bool PrintBarcodeOnLabel
+    {
+        get => _printBarcodeOnLabel;
+        set => SetProperty(ref _printBarcodeOnLabel, value);
+    }
+
     public ICommand SaveQuickAmountsCommand { get; }
 
     public ICommand ResetQuickAmountsCommand { get; }
@@ -88,6 +159,14 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     public ICommand SaveGeneralSettingsCommand { get; }
 
     public ICommand ResetGeneralSettingsCommand { get; }
+
+    public ICommand SavePriceChangeSettingsCommand { get; }
+
+    public ICommand ResetPriceChangeSettingsCommand { get; }
+
+    public ICommand SaveLabelPrintSettingsCommand { get; }
+
+    public ICommand ResetLabelPrintSettingsCommand { get; }
 
     private void SaveQuickAmounts()
     {
@@ -160,6 +239,7 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
         _settingsService.UpdatePaymentMethods(methodKeys);
         OnPropertyChanged(nameof(PaymentMethods));
+        OnPropertyChanged(nameof(DefaultPaymentMethodOptions));
         PaymentMethodsText = BuildPaymentMethodsText();
         StatusMessage = "Odeme tipleri guncellendi.";
     }
@@ -168,6 +248,7 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     {
         _settingsService.ResetPaymentMethods();
         OnPropertyChanged(nameof(PaymentMethods));
+        OnPropertyChanged(nameof(DefaultPaymentMethodOptions));
         PaymentMethodsText = BuildPaymentMethodsText();
         StatusMessage = "Varsayilan odeme tipleri geri yuklendi.";
         DefaultPaymentMethod = _settingsService.DefaultPaymentMethod;
@@ -180,6 +261,12 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         if (normalizedDefaultPaymentMethod is null)
         {
             StatusMessage = $"Desteklenmeyen varsayilan odeme tipi: {DefaultPaymentMethod}";
+            return;
+        }
+
+        if (!ThemeOptions.Contains(Theme))
+        {
+            StatusMessage = $"Desteklenmeyen tema: {Theme}";
             return;
         }
 
@@ -201,6 +288,70 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         Theme = _settingsService.Theme;
         ReceiptPrinterName = _settingsService.ReceiptPrinterName;
         StatusMessage = "Genel ayarlar varsayilana dondu.";
+    }
+
+    private void SavePriceChangeSettings()
+    {
+        if (!PriceChangeModeOptions.Contains(PriceChangeMode))
+        {
+            StatusMessage = $"Desteklenmeyen fiyat degisim tipi: {PriceChangeMode}";
+            return;
+        }
+
+        if (!decimal.TryParse(PriceChangeValue, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedValue) &&
+            !decimal.TryParse(PriceChangeValue, NumberStyles.Number, CultureInfo.CurrentCulture, out parsedValue))
+        {
+            StatusMessage = $"Gecersiz fiyat degisim degeri: {PriceChangeValue}";
+            return;
+        }
+
+        _settingsService.UpdatePriceChangeSettings(PriceChangeMode, parsedValue, RequirePriceApproval);
+        PriceChangeMode = _settingsService.PriceChangeMode;
+        PriceChangeValue = _settingsService.PriceChangeValue.ToString("0.##", CultureInfo.InvariantCulture);
+        RequirePriceApproval = _settingsService.RequirePriceApproval;
+        StatusMessage = "Fiyat degisimi ayarlari guncellendi.";
+    }
+
+    private void ResetPriceChangeSettings()
+    {
+        _settingsService.ResetPriceChangeSettings();
+        PriceChangeMode = _settingsService.PriceChangeMode;
+        PriceChangeValue = _settingsService.PriceChangeValue.ToString("0.##", CultureInfo.InvariantCulture);
+        RequirePriceApproval = _settingsService.RequirePriceApproval;
+        StatusMessage = "Fiyat degisimi ayarlari varsayilana dondu.";
+    }
+
+    private void SaveLabelPrintSettings()
+    {
+        if (!LabelTemplateOptions.Contains(LabelTemplate))
+        {
+            StatusMessage = $"Desteklenmeyen etiket sablonu: {LabelTemplate}";
+            return;
+        }
+
+        if (!int.TryParse(LabelCopyCount, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCopyCount) &&
+            !int.TryParse(LabelCopyCount, NumberStyles.Integer, CultureInfo.CurrentCulture, out parsedCopyCount))
+        {
+            StatusMessage = $"Gecersiz etiket kopya sayisi: {LabelCopyCount}";
+            return;
+        }
+
+        _settingsService.UpdateLabelPrintSettings(LabelTemplate, LabelPrinterName, parsedCopyCount, PrintBarcodeOnLabel);
+        LabelTemplate = _settingsService.LabelTemplate;
+        LabelPrinterName = _settingsService.LabelPrinterName;
+        LabelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
+        PrintBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
+        StatusMessage = "Etiket basimi ayarlari guncellendi.";
+    }
+
+    private void ResetLabelPrintSettings()
+    {
+        _settingsService.ResetLabelPrintSettings();
+        LabelTemplate = _settingsService.LabelTemplate;
+        LabelPrinterName = _settingsService.LabelPrinterName;
+        LabelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
+        PrintBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
+        StatusMessage = "Etiket basimi ayarlari varsayilana dondu.";
     }
 
     private string BuildQuickAmountsText()

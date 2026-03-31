@@ -28,11 +28,13 @@ public sealed class MainViewModel : ViewModelBase
         InventoryCommand = new RelayCommand(ShowInventoryView);
         CashCommand = new RelayCommand(() => ShowPlaceholder("Cash"));
         EndOfDayCommand = new RelayCommand(() => ShowPlaceholder("End of Day"));
+        PriceChangeCommand = new RelayCommand(() => ShowPlaceholder("Price Change"));
+        LabelPrintCommand = new RelayCommand(() => ShowPlaceholder("Label Print"));
         ProjectSettingsCommand = new RelayCommand(ShowProjectSettingsView);
         DashboardCommand = new RelayCommand(ShowDashboardView);
         ExitCommand = new RelayCommand(ExitApplication);
 
-        _currentView = CreatePosView();
+        _currentView = CreateDashboardView();
     }
 
     public string AppTitle
@@ -81,6 +83,10 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand CashCommand { get; }
 
     public ICommand EndOfDayCommand { get; }
+
+    public ICommand PriceChangeCommand { get; }
+
+    public ICommand LabelPrintCommand { get; }
 
     public ICommand ProjectSettingsCommand { get; }
 
@@ -185,7 +191,7 @@ public sealed class MainViewModel : ViewModelBase
             CustomersView => CreateCustomersView(),
             InventoryView => CreateInventoryView(),
             ProjectSettingsView => CreateProjectSettingsView(),
-            _ => CreatePosView()
+            _ => CreateDashboardView()
         };
     }
 }
