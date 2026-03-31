@@ -1,6 +1,6 @@
-using System.Windows;
 using System.Windows.Input;
 using Bilnex.Pos.Commands;
+using Bilnex.Pos.Services;
 using Bilnex.Pos.ViewModels.Base;
 
 namespace Bilnex.Pos.ViewModels;
@@ -31,10 +31,8 @@ public sealed class DashboardViewModel : ViewModelBase
 
     private static void NavigateTo(string moduleName)
     {
-        MessageBox.Show(
-            $"{moduleName} screen will be opened here.",
-            "Navigation",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        AppDialogService.ShowInfo(
+            "Modül Açılışı",
+            $"{moduleName} ekranı bu alanda açılacak.");
     }
 }

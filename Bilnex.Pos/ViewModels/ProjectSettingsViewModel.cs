@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -12,8 +12,16 @@ namespace Bilnex.Pos.ViewModels;
 
 public sealed class ProjectSettingsViewModel : ViewModelBase
 {
-    private static readonly IReadOnlyList<string> _themeOptions = new[] { "Dark", "Light" };
-    private static readonly IReadOnlyList<string> _priceChangeModeOptions = new[] { "Percentage", "Fixed" };
+    private static readonly IReadOnlyList<SelectionOption> _themeOptions =
+    [
+        new("Dark", "Koyu"),
+        new("Light", "Açık")
+    ];
+    private static readonly IReadOnlyList<SelectionOption> _priceChangeModeOptions =
+    [
+        new("Percentage", "Yüzde"),
+        new("Fixed", "Tutar")
+    ];
     private static readonly IReadOnlyList<string> _labelTemplateOptions = new[] { "50x30", "58x40", "100x70" };
     private readonly PosSettingsService _settingsService;
     private string _quickAmountsText;
@@ -28,7 +36,7 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     private string _labelPrinterName;
     private string _labelCopyCount;
     private bool _printBarcodeOnLabel;
-    private string _statusMessage = "Kaydetmek icin tutarlari virgul ile ayir.";
+    private string _statusMessage = "Kaydetmek için tutarları virgül ile ayır.";
 
     public ProjectSettingsViewModel()
     {
@@ -62,11 +70,11 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
     public IEnumerable<PaymentMethodOption> PaymentMethods => _settingsService.PaymentMethods;
 
-    public IEnumerable<string> DefaultPaymentMethodOptions => _settingsService.PaymentMethods.Select(x => x.Key);
+    public IEnumerable<PaymentMethodOption> DefaultPaymentMethodOptions => _settingsService.PaymentMethods;
 
-    public IEnumerable<string> ThemeOptions => _themeOptions;
+    public IEnumerable<SelectionOption> ThemeOptions => _themeOptions;
 
-    public IEnumerable<string> PriceChangeModeOptions => _priceChangeModeOptions;
+    public IEnumerable<SelectionOption> PriceChangeModeOptions => _priceChangeModeOptions;
 
     public IEnumerable<string> LabelTemplateOptions => _labelTemplateOptions;
 
@@ -91,13 +99,25 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     public string DefaultPaymentMethod
     {
         get => _defaultPaymentMethod;
-        set => SetProperty(ref _defaultPaymentMethod, value);
+        set
+        {
+            if (SetProperty(ref _defaultPaymentMethod, value))
+            {
+                OnPropertyChanged(nameof(DefaultPaymentMethodDisplay));
+            }
+        }
     }
 
     public string Theme
     {
         get => _theme;
-        set => SetProperty(ref _theme, value);
+        set
+        {
+            if (SetProperty(ref _theme, value))
+            {
+                OnPropertyChanged(nameof(ThemeDisplay));
+            }
+        }
     }
 
     public string ReceiptPrinterName
@@ -109,7 +129,13 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     public string PriceChangeMode
     {
         get => _priceChangeMode;
-        set => SetProperty(ref _priceChangeMode, value);
+        set
+        {
+            if (SetProperty(ref _priceChangeMode, value))
+            {
+                OnPropertyChanged(nameof(PriceChangeModeDisplay));
+            }
+        }
     }
 
     public string PriceChangeValue
@@ -148,6 +174,12 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         set => SetProperty(ref _printBarcodeOnLabel, value);
     }
 
+    public string DefaultPaymentMethodDisplay => ResolvePaymentMethodTitle(DefaultPaymentMethod);
+
+    public string ThemeDisplay => ResolveThemeTitle(Theme);
+
+    public string PriceChangeModeDisplay => ResolvePriceChangeModeTitle(PriceChangeMode);
+
     public ICommand SaveQuickAmountsCommand { get; }
 
     public ICommand ResetQuickAmountsCommand { get; }
@@ -179,13 +211,13 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
             if (!decimal.TryParse(rawItem, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedAmount) &&
                 !decimal.TryParse(rawItem, NumberStyles.Number, CultureInfo.CurrentCulture, out parsedAmount))
             {
-                StatusMessage = $"Gecersiz tutar: {rawItem}";
+                StatusMessage = $"Geçersiz tutar: {rawItem}";
                 return;
             }
 
             if (parsedAmount <= 0)
             {
-                StatusMessage = $"Tutar sifirdan buyuk olmali: {rawItem}";
+                StatusMessage = $"Tutar sıfırdan büyük olmalı: {rawItem}";
                 return;
             }
 
@@ -194,22 +226,28 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
         if (parsedAmounts.Count == 0)
         {
-            StatusMessage = "En az bir hizli tutar girin.";
+            StatusMessage = "En az bir hızlı tutar girin.";
             return;
         }
 
         _settingsService.UpdateQuickAmounts(parsedAmounts);
         OnPropertyChanged(nameof(QuickAmounts));
         QuickAmountsText = BuildQuickAmountsText();
-        StatusMessage = "Hizli tutarlar guncellendi.";
+        StatusMessage = "Hızlı tutarlar güncellendi.";
+        AppDialogService.ShowSaved("Hızlı tutar ayarları");
     }
 
     private void ResetQuickAmounts()
     {
+        if (!AppDialogService.ShowResetConfirmation("Hızlı tutar"))
+        {
+            return;
+        }
+
         _settingsService.ResetQuickAmounts();
         OnPropertyChanged(nameof(QuickAmounts));
         QuickAmountsText = BuildQuickAmountsText();
-        StatusMessage = "Varsayilan hizli tutarlar geri yuklendi.";
+        StatusMessage = "Varsayılan hızlı tutarlar geri yüklendi.";
     }
 
     private void SavePaymentMethods()
@@ -224,7 +262,7 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
             if (normalizedKey is null)
             {
-                StatusMessage = $"Desteklenmeyen odeme tipi: {rawItem}";
+                StatusMessage = $"Desteklenmeyen ödeme tipi: {rawItem}";
                 return;
             }
 
@@ -233,7 +271,7 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
         if (methodKeys.Count == 0)
         {
-            StatusMessage = "En az bir odeme tipi secin.";
+            StatusMessage = "En az bir ödeme tipi seçin.";
             return;
         }
 
@@ -241,16 +279,22 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(PaymentMethods));
         OnPropertyChanged(nameof(DefaultPaymentMethodOptions));
         PaymentMethodsText = BuildPaymentMethodsText();
-        StatusMessage = "Odeme tipleri guncellendi.";
+        StatusMessage = "Ödeme tipleri güncellendi.";
+        AppDialogService.ShowSaved("Ödeme yöntemi ayarları");
     }
 
     private void ResetPaymentMethods()
     {
+        if (!AppDialogService.ShowResetConfirmation("Ödeme yöntemi"))
+        {
+            return;
+        }
+
         _settingsService.ResetPaymentMethods();
         OnPropertyChanged(nameof(PaymentMethods));
         OnPropertyChanged(nameof(DefaultPaymentMethodOptions));
         PaymentMethodsText = BuildPaymentMethodsText();
-        StatusMessage = "Varsayilan odeme tipleri geri yuklendi.";
+        StatusMessage = "Varsayılan ödeme tipleri geri yüklendi.";
         DefaultPaymentMethod = _settingsService.DefaultPaymentMethod;
     }
 
@@ -260,13 +304,14 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
         if (normalizedDefaultPaymentMethod is null)
         {
-            StatusMessage = $"Desteklenmeyen varsayilan odeme tipi: {DefaultPaymentMethod}";
+            StatusMessage = $"Desteklenmeyen varsayılan ödeme tipi: {DefaultPaymentMethod}";
             return;
         }
 
-        if (!ThemeOptions.Contains(Theme))
+        if (!_themeOptions.Any(x => x.Key == Theme))
         {
             StatusMessage = $"Desteklenmeyen tema: {Theme}";
+            AppDialogService.ShowOperationFailed("Tema Geçersiz", $"'{Theme}' teması desteklenmiyor.", "SET-THEME-400");
             return;
         }
 
@@ -278,30 +323,37 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         DefaultPaymentMethod = _settingsService.DefaultPaymentMethod;
         Theme = _settingsService.Theme;
         ReceiptPrinterName = _settingsService.ReceiptPrinterName;
-        StatusMessage = "Genel ayarlar guncellendi.";
+        StatusMessage = "Genel ayarlar güncellendi.";
+        AppDialogService.ShowSaved("Genel ayarlar");
+        AppDialogService.ShowInfo("Tema Uygulandı", $"{ThemeDisplay} tema aktif edildi.");
     }
 
     private void ResetGeneralSettings()
     {
+        if (!AppDialogService.ShowResetConfirmation("Genel"))
+        {
+            return;
+        }
+
         _settingsService.ResetGeneralSettings();
         DefaultPaymentMethod = _settingsService.DefaultPaymentMethod;
         Theme = _settingsService.Theme;
         ReceiptPrinterName = _settingsService.ReceiptPrinterName;
-        StatusMessage = "Genel ayarlar varsayilana dondu.";
+        StatusMessage = "Genel ayarlar varsayılana döndü.";
     }
 
     private void SavePriceChangeSettings()
     {
-        if (!PriceChangeModeOptions.Contains(PriceChangeMode))
+        if (!_priceChangeModeOptions.Any(x => x.Key == PriceChangeMode))
         {
-            StatusMessage = $"Desteklenmeyen fiyat degisim tipi: {PriceChangeMode}";
+            StatusMessage = $"Desteklenmeyen fiyat değişim tipi: {PriceChangeMode}";
             return;
         }
 
         if (!decimal.TryParse(PriceChangeValue, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedValue) &&
             !decimal.TryParse(PriceChangeValue, NumberStyles.Number, CultureInfo.CurrentCulture, out parsedValue))
         {
-            StatusMessage = $"Gecersiz fiyat degisim degeri: {PriceChangeValue}";
+            StatusMessage = $"Geçersiz fiyat değişim değeri: {PriceChangeValue}";
             return;
         }
 
@@ -309,30 +361,38 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         PriceChangeMode = _settingsService.PriceChangeMode;
         PriceChangeValue = _settingsService.PriceChangeValue.ToString("0.##", CultureInfo.InvariantCulture);
         RequirePriceApproval = _settingsService.RequirePriceApproval;
-        StatusMessage = "Fiyat degisimi ayarlari guncellendi.";
+        StatusMessage = "Fiyat değişimi ayarları güncellendi.";
+        AppDialogService.ShowSaved("Fiyat değişimi ayarları");
     }
 
     private void ResetPriceChangeSettings()
     {
+        if (!AppDialogService.ShowResetConfirmation("Fiyat değişimi"))
+        {
+            return;
+        }
+
         _settingsService.ResetPriceChangeSettings();
         PriceChangeMode = _settingsService.PriceChangeMode;
         PriceChangeValue = _settingsService.PriceChangeValue.ToString("0.##", CultureInfo.InvariantCulture);
         RequirePriceApproval = _settingsService.RequirePriceApproval;
-        StatusMessage = "Fiyat degisimi ayarlari varsayilana dondu.";
+        StatusMessage = "Fiyat değişimi ayarları varsayılana döndü.";
     }
 
     private void SaveLabelPrintSettings()
     {
         if (!LabelTemplateOptions.Contains(LabelTemplate))
         {
-            StatusMessage = $"Desteklenmeyen etiket sablonu: {LabelTemplate}";
+            StatusMessage = $"Desteklenmeyen etiket şablonu: {LabelTemplate}";
+            AppDialogService.ShowOperationFailed("Etiket Şablonu Geçersiz", $"'{LabelTemplate}' şablonu desteklenmiyor.", "LBL-TPL-400");
             return;
         }
 
         if (!int.TryParse(LabelCopyCount, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCopyCount) &&
             !int.TryParse(LabelCopyCount, NumberStyles.Integer, CultureInfo.CurrentCulture, out parsedCopyCount))
         {
-            StatusMessage = $"Gecersiz etiket kopya sayisi: {LabelCopyCount}";
+            StatusMessage = $"Geçersiz etiket kopya sayısı: {LabelCopyCount}";
+            AppDialogService.ShowOperationFailed("Kopya Sayısı Geçersiz", $"'{LabelCopyCount}' değeri sayı olmalı.", "LBL-CPY-400");
             return;
         }
 
@@ -341,17 +401,23 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         LabelPrinterName = _settingsService.LabelPrinterName;
         LabelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
         PrintBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
-        StatusMessage = "Etiket basimi ayarlari guncellendi.";
+        StatusMessage = "Etiket basımı ayarları güncellendi.";
+        AppDialogService.ShowSaved("Etiket basımı ayarları");
     }
 
     private void ResetLabelPrintSettings()
     {
+        if (!AppDialogService.ShowResetConfirmation("Etiket basımı"))
+        {
+            return;
+        }
+
         _settingsService.ResetLabelPrintSettings();
         LabelTemplate = _settingsService.LabelTemplate;
         LabelPrinterName = _settingsService.LabelPrinterName;
         LabelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
         PrintBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
-        StatusMessage = "Etiket basimi ayarlari varsayilana dondu.";
+        StatusMessage = "Etiket basımı ayarları varsayılana döndü.";
     }
 
     private string BuildQuickAmountsText()
@@ -363,6 +429,25 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
 
     private string BuildPaymentMethodsText()
     {
-        return string.Join(", ", _settingsService.PaymentMethods.Select(x => x.Key));
+        return string.Join(", ", _settingsService.PaymentMethods.Select(x => x.Title));
     }
+
+    private string ResolvePaymentMethodTitle(string key)
+    {
+        return _settingsService.PaymentMethods.FirstOrDefault(x => x.Key == key)?.Title ?? key;
+    }
+
+    private static string ResolveThemeTitle(string key)
+    {
+        return _themeOptions.FirstOrDefault(x => x.Key == key)?.Title ?? key;
+    }
+
+    private static string ResolvePriceChangeModeTitle(string key)
+    {
+        return _priceChangeModeOptions.FirstOrDefault(x => x.Key == key)?.Title ?? key;
+    }
+
+    public sealed record SelectionOption(string Key, string Title);
 }
+
+

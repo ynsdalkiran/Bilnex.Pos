@@ -1,0 +1,193 @@
+<Window x:Class="Bilnex.Pos.Views.TouchDialogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Bilnex Dialog"
+        Width="560"
+        MinWidth="520"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        ShowInTaskbar="False"
+        KeyDown="TouchDialogWindow_KeyDown"
+        Background="{DynamicResource ShellContentBackgroundBrush}"
+        AllowsTransparency="False">
+    <Grid Background="{DynamicResource ShellContentBackgroundBrush}">
+        <Border x:Name="DialogContainer"
+                Width="560"
+                MaxWidth="640"
+                Background="{DynamicResource ShellContentBackgroundBrush}"
+                BorderBrush="{DynamicResource ShellHeaderBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="18" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="24" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border x:Name="TopAccentBar"
+                        Grid.Row="0"
+                        Background="{DynamicResource MetroTileBlueBrush}" />
+
+                <Border Height="18"
+                        Grid.Row="1"
+                        Margin="0,-8,0,0"
+                        Background="Transparent"
+                        VerticalAlignment="Top"
+                        MouseLeftButtonDown="DragArea_MouseLeftButtonDown"
+                        Panel.ZIndex="5" />
+
+                <Grid Grid.Row="1" Margin="28,20,28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border x:Name="AccentBadge"
+                            Width="72"
+                            Height="72"
+                            Background="{DynamicResource MetroTileBlueBrush}"
+                            CornerRadius="18"
+                            VerticalAlignment="Top">
+                        <TextBlock x:Name="IconText"
+                                   Text="&#xE946;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   Foreground="White"
+                                   FontSize="32"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,2,0,0">
+                        <Border x:Name="StatusBadge"
+                                HorizontalAlignment="Left"
+                                Padding="10,4"
+                                Background="{DynamicResource MetroTileBlueBrush}"
+                                CornerRadius="10">
+                            <TextBlock x:Name="StatusBadgeText"
+                                       Foreground="White"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       Text="B\u0130LG\u0130" />
+                        </Border>
+                        <TextBlock x:Name="TitleBlock"
+                                   Margin="0,10,0,0"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   FontSize="28"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap" />
+                        <TextBlock x:Name="CaptionBlock"
+                                   Margin="0,8,0,0"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="Bilnex sistem bildirimi" />
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="3"
+                        Margin="28,0,28,0"
+                        Padding="22"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrushDark}"
+                        BorderThickness="1"
+                        CornerRadius="18">
+                    <TextBlock x:Name="MessageBlock"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="19"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"
+                               VerticalAlignment="Center" />
+                </Border>
+
+                <Grid Grid.Row="5" Margin="28,0,28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="CountdownBlock"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Visibility="Collapsed" />
+
+                    <Border Grid.Column="2"
+                            Padding="12,8"
+                            Background="{DynamicResource WindowBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrushDark}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Visibility="{Binding ElementName=ErrorCodeBlock, Path=Visibility}">
+                        <TextBlock x:Name="ErrorCodeBlock"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Visibility="Collapsed" />
+                    </Border>
+                </Grid>
+
+                <Grid Grid.Row="7" Margin="28,0,28,28">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="SecondaryButton"
+                            Grid.Column="0"
+                            Height="72"
+                            FontSize="20"
+                            FontWeight="Bold"
+                            Style="{StaticResource SecondaryActionButtonStyle}"
+                            Click="SecondaryButton_Click">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock x:Name="SecondaryButtonIcon"
+                                       Margin="0,0,10,0"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="18"
+                                       VerticalAlignment="Center"
+                                       Text="&#xE711;" />
+                            <TextBlock x:Name="SecondaryButtonLabel"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="PrimaryButton"
+                            Grid.Column="2"
+                            Height="72"
+                            FontSize="20"
+                            FontWeight="Bold"
+                            Style="{StaticResource PrimaryActionButtonStyle}"
+                            Click="PrimaryButton_Click">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock x:Name="PrimaryButtonIcon"
+                                       Margin="0,0,10,0"
+                                       FontFamily="Segoe MDL2 Assets"
+                                       FontSize="18"
+                                       VerticalAlignment="Center"
+                                       Text="&#xE8FB;" />
+                            <TextBlock x:Name="PrimaryButtonTextBlock"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

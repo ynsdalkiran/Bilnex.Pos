@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
@@ -13,12 +14,12 @@ public sealed class PosSettingsService
     private readonly string _settingsFilePath;
     private string _defaultPaymentMethod = "Cash";
     private string _theme = "Dark";
-    private string _receiptPrinterName = "Default Printer";
+    private string _receiptPrinterName = "Varsayılan Yazıcı";
     private string _priceChangeMode = "Percentage";
-    private decimal _priceChangeValue = 0m;
+    private decimal _priceChangeValue;
     private bool _requirePriceApproval = true;
     private string _labelTemplate = "50x30";
-    private string _labelPrinterName = "Default Label Printer";
+    private string _labelPrinterName = "Varsayılan Etiket Yazıcısı";
     private int _labelCopyCount = 1;
     private bool _printBarcodeOnLabel = true;
 
@@ -134,7 +135,7 @@ public sealed class PosSettingsService
 
     public void ResetGeneralSettings()
     {
-        ApplyGeneralSettings("Cash", "Dark", "Default Printer");
+        ApplyGeneralSettings("Cash", "Dark", "Varsayılan Yazıcı");
         SaveSettings();
     }
 
@@ -158,7 +159,7 @@ public sealed class PosSettingsService
 
     public void ResetLabelPrintSettings()
     {
-        ApplyLabelPrintSettings("50x30", "Default Label Printer", 1, true);
+        ApplyLabelPrintSettings("50x30", "Varsayılan Etiket Yazıcısı", 1, true);
         SaveSettings();
     }
 
@@ -251,9 +252,9 @@ public sealed class PosSettingsService
     {
         ApplyQuickAmounts(new[] { 50m, 100m, 200m, 500m, 1000m });
         ApplyPaymentMethods(new[] { "Cash", "Card" });
-        ApplyGeneralSettings("Cash", "Dark", "Default Printer");
+        ApplyGeneralSettings("Cash", "Dark", "Varsayılan Yazıcı");
         ApplyPriceChangeSettings("Percentage", 0m, true);
-        ApplyLabelPrintSettings("50x30", "Default Label Printer", 1, true);
+        ApplyLabelPrintSettings("50x30", "Varsayılan Etiket Yazıcısı", 1, true);
     }
 
     private void ApplyQuickAmounts(IEnumerable<decimal> amounts)
@@ -277,7 +278,7 @@ public sealed class PosSettingsService
             }
         }
 
-        QuickAmounts.Add(new QuickAmountOption("Tum Tutar", "TOTAL"));
+        QuickAmounts.Add(new QuickAmountOption("Tüm Tutar", "TOTAL"));
     }
 
     private void ApplyPaymentMethods(IEnumerable<string> methodKeys)
@@ -318,9 +319,12 @@ public sealed class PosSettingsService
             : PaymentMethods.FirstOrDefault()?.Key ?? "Cash";
 
         Theme = NormalizeTheme(theme);
-        ReceiptPrinterName = string.IsNullOrWhiteSpace(receiptPrinterName)
-            ? "Default Printer"
-            : receiptPrinterName.Trim();
+
+        var normalizedPrinterName = receiptPrinterName?.Trim();
+        ReceiptPrinterName = string.IsNullOrWhiteSpace(normalizedPrinterName) ||
+                             string.Equals(normalizedPrinterName, "Default Printer", StringComparison.OrdinalIgnoreCase)
+            ? "Varsayılan Yazıcı"
+            : normalizedPrinterName;
     }
 
     private static string NormalizeTheme(string? theme)
@@ -342,9 +346,13 @@ public sealed class PosSettingsService
     private void ApplyLabelPrintSettings(string? template, string? printerName, int copyCount, bool printBarcode)
     {
         LabelTemplate = NormalizeLabelTemplate(template);
-        LabelPrinterName = string.IsNullOrWhiteSpace(printerName)
-            ? "Default Label Printer"
-            : printerName.Trim();
+
+        var normalizedPrinterName = printerName?.Trim();
+        LabelPrinterName = string.IsNullOrWhiteSpace(normalizedPrinterName) ||
+                           string.Equals(normalizedPrinterName, "Default Label Printer", StringComparison.OrdinalIgnoreCase)
+            ? "Varsayılan Etiket Yazıcısı"
+            : normalizedPrinterName;
+
         LabelCopyCount = Math.Max(1, Math.Min(100, copyCount));
         PrintBarcodeOnLabel = printBarcode;
     }
@@ -378,7 +386,7 @@ public sealed class PosSettingsService
 
         public string Theme { get; set; } = "Dark";
 
-        public string ReceiptPrinterName { get; set; } = "Default Printer";
+        public string ReceiptPrinterName { get; set; } = "Varsayılan Yazıcı";
 
         public string PriceChangeMode { get; set; } = "Percentage";
 
@@ -388,7 +396,7 @@ public sealed class PosSettingsService
 
         public string LabelTemplate { get; set; } = "50x30";
 
-        public string LabelPrinterName { get; set; } = "Default Label Printer";
+        public string LabelPrinterName { get; set; } = "Varsayılan Etiket Yazıcısı";
 
         public int LabelCopyCount { get; set; } = 1;
 

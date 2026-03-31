@@ -11,6 +11,9 @@ public sealed class Receipt : INotifyPropertyChanged
 {
     private decimal _cashAmount;
     private decimal _cardAmount;
+    private decimal _discountAmount;
+    private decimal _roundAdjustment;
+    private string _discountLabel = string.Empty;
 
     public Receipt()
     {
@@ -30,7 +33,39 @@ public sealed class Receipt : INotifyPropertyChanged
 
     public int ItemCount => Items.Sum(x => x.Quantity);
 
-    public decimal TotalAmount => Items.Sum(x => x.LineTotal);
+    public decimal SubtotalAmount => Items.Sum(x => x.LineTotal);
+
+    public decimal DiscountAmount
+    {
+        get => _discountAmount;
+        private set
+        {
+            if (SetField(ref _discountAmount, value))
+            {
+                NotifyAmountPropertiesChanged();
+            }
+        }
+    }
+
+    public decimal RoundAdjustment
+    {
+        get => _roundAdjustment;
+        private set
+        {
+            if (SetField(ref _roundAdjustment, value))
+            {
+                NotifyAmountPropertiesChanged();
+            }
+        }
+    }
+
+    public string DiscountLabel
+    {
+        get => _discountLabel;
+        private set => SetField(ref _discountLabel, value);
+    }
+
+    public decimal TotalAmount => Math.Max(0m, SubtotalAmount - DiscountAmount + RoundAdjustment);
 
     public decimal CashAmount
     {
@@ -68,6 +103,23 @@ public sealed class Receipt : INotifyPropertyChanged
         CardAmount = 0m;
     }
 
+    public void ApplyReceiptAdjustment(decimal discountAmount, decimal roundAdjustment, string? discountLabel)
+    {
+        var subtotal = SubtotalAmount;
+        var clampedDiscount = Math.Max(0m, Math.Min(subtotal, decimal.Round(discountAmount, 2)));
+
+        DiscountAmount = clampedDiscount;
+        RoundAdjustment = decimal.Round(roundAdjustment, 2);
+        DiscountLabel = discountLabel ?? string.Empty;
+    }
+
+    public void ClearReceiptAdjustment()
+    {
+        DiscountAmount = 0m;
+        RoundAdjustment = 0m;
+        DiscountLabel = string.Empty;
+    }
+
     private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.OldItems is not null)
@@ -100,6 +152,10 @@ public sealed class Receipt : INotifyPropertyChanged
     private void NotifyAmountPropertiesChanged()
     {
         OnPropertyChanged(nameof(ItemCount));
+        OnPropertyChanged(nameof(SubtotalAmount));
+        OnPropertyChanged(nameof(DiscountAmount));
+        OnPropertyChanged(nameof(RoundAdjustment));
+        OnPropertyChanged(nameof(DiscountLabel));
         OnPropertyChanged(nameof(TotalAmount));
         OnPropertyChanged(nameof(ChangeAmount));
         OnPropertyChanged(nameof(IsPaid));

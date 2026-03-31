@@ -1,5 +1,4 @@
-using System;
-using System.Windows;
+﻿using System;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Bilnex.Pos.Commands;
@@ -12,6 +11,7 @@ namespace Bilnex.Pos.ViewModels;
 public sealed class MainViewModel : ViewModelBase
 {
     private readonly PosSettingsService _settingsService;
+    private readonly AppNotificationService _notificationCenter;
     private string _appTitle = "Bilnex POS Dashboard";
     private string _branchName = "Branch: Istanbul Kadikoy";
     private string _currentUser = "User: Admin";
@@ -20,6 +20,7 @@ public sealed class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         _settingsService = PosSettingsService.Current;
+        _notificationCenter = AppNotificationService.Current;
         ThemeManager.ApplyTheme(_settingsService.Theme);
         _settingsService.SettingsChanged += OnSettingsChanged;
 
@@ -28,8 +29,8 @@ public sealed class MainViewModel : ViewModelBase
         InventoryCommand = new RelayCommand(ShowInventoryView);
         CashCommand = new RelayCommand(() => ShowPlaceholder("Cash"));
         EndOfDayCommand = new RelayCommand(() => ShowPlaceholder("End of Day"));
-        PriceChangeCommand = new RelayCommand(() => ShowPlaceholder("Price Change"));
-        LabelPrintCommand = new RelayCommand(() => ShowPlaceholder("Label Print"));
+        PriceChangeCommand = new RelayCommand(ShowPriceChangeView);
+        LabelPrintCommand = new RelayCommand(ShowLabelPrintView);
         ProjectSettingsCommand = new RelayCommand(ShowProjectSettingsView);
         DashboardCommand = new RelayCommand(ShowDashboardView);
         ExitCommand = new RelayCommand(ExitApplication);
@@ -54,6 +55,8 @@ public sealed class MainViewModel : ViewModelBase
         get => _currentUser;
         set => SetProperty(ref _currentUser, value);
     }
+
+    public AppNotificationService NotificationCenter => _notificationCenter;
 
     public UserControl CurrentView
     {
@@ -119,18 +122,29 @@ public sealed class MainViewModel : ViewModelBase
         CurrentView = CreateProjectSettingsView();
     }
 
+    private void ShowPriceChangeView()
+    {
+        CurrentView = CreatePriceChangeView();
+    }
+
+    private void ShowLabelPrintView()
+    {
+        CurrentView = CreateLabelPrintView();
+    }
+
     private void ShowPlaceholder(string moduleName)
     {
-        MessageBox.Show(
-            $"{moduleName} screen will be added next.",
-            "Navigation",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        AppDialogService.ShowWarning(
+            "Hazırlanıyor",
+            $"{moduleName} modülü bir sonraki adımda eklenecek.");
     }
 
     private static void ExitApplication()
     {
-        Application.Current.Shutdown();
+        if (AppDialogService.ShowConfirmation("Çıkış Onayı", "Uygulamadan çıkmak istediğinize emin misiniz?", "Çıkış Yap", "Vazgeç"))
+        {
+            System.Windows.Application.Current.Shutdown();
+        }
     }
 
     private DashboardView CreateDashboardView()
@@ -173,9 +187,25 @@ public sealed class MainViewModel : ViewModelBase
         };
     }
 
+    private PriceChangeView CreatePriceChangeView()
+    {
+        return new PriceChangeView
+        {
+            DataContext = this
+        };
+    }
+
+    private LabelPrintView CreateLabelPrintView()
+    {
+        return new LabelPrintView
+        {
+            DataContext = this
+        };
+    }
+
     private void OnSettingsChanged(object? sender, EventArgs e)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
             ThemeManager.ApplyTheme(_settingsService.Theme);
             RefreshCurrentView();
@@ -191,7 +221,10 @@ public sealed class MainViewModel : ViewModelBase
             CustomersView => CreateCustomersView(),
             InventoryView => CreateInventoryView(),
             ProjectSettingsView => CreateProjectSettingsView(),
+            PriceChangeView => CreatePriceChangeView(),
+            LabelPrintView => CreateLabelPrintView(),
             _ => CreateDashboardView()
         };
     }
 }
+
