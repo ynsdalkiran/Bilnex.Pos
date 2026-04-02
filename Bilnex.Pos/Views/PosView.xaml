@@ -471,7 +471,7 @@
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Rows="1"
-                                             Columns="5" />
+                                             Columns="{Binding DataContext.QuickProductCategoryColumns, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -507,62 +507,68 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <ItemsControl Grid.Row="2"
-                                  Margin="0,2,0,0"
-                                  ItemsSource="{Binding QuickProducts}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Columns="2" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button MinHeight="120"
-                                        Margin="0,0,12,12"
-                                        Padding="16"
-                                        Background="{DynamicResource SurfaceAltBrush}"
-                                        BorderBrush="{DynamicResource BorderBrushDark}"
-                                        BorderThickness="1"
-                                        Cursor="Hand"
-                                        Command="{Binding DataContext.AddProductCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        Click="RefocusBarcodeInput_Click"
-                                        CommandParameter="{Binding Name}">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border x:Name="RootBorder"
-                                                    Background="{TemplateBinding Background}"
-                                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                                    CornerRadius="16">
-                                                <Grid Margin="{TemplateBinding Padding}">
-                                                    <TextBlock Text="{Binding Name}"
-                                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                                               FontSize="19"
-                                                               FontWeight="SemiBold"
-                                                               TextWrapping="Wrap"
-                                                               VerticalAlignment="Center"
-                                                               HorizontalAlignment="Center" />
-                                                </Grid>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource SurfaceBrush}" />
-                                                    <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
-                                                </Trigger>
-                                                <Trigger Property="IsPressed" Value="True">
-                                                    <Setter TargetName="RootBorder" Property="RenderTransform">
-                                                        <Setter.Value>
-                                                            <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Hidden"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  PanningMode="VerticalOnly"
+                                  Focusable="False">
+                        <ItemsControl Margin="0,2,0,0"
+                                      ItemsSource="{Binding QuickProducts}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{Binding DataContext.QuickProductColumns, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button MinHeight="{Binding DataContext.QuickProductMinButtonHeight, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            Margin="0,0,12,12"
+                                            Padding="16"
+                                            Background="{DynamicResource SurfaceAltBrush}"
+                                            BorderBrush="{DynamicResource BorderBrushDark}"
+                                            BorderThickness="1"
+                                            Cursor="Hand"
+                                            Command="{Binding DataContext.AddProductCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            Click="RefocusBarcodeInput_Click"
+                                            CommandParameter="{Binding Name}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="RootBorder"
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="16">
+                                                    <Grid Margin="{TemplateBinding Padding}">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                                   FontSize="{Binding DataContext.QuickProductButtonFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                   FontWeight="SemiBold"
+                                                                   TextWrapping="Wrap"
+                                                                   VerticalAlignment="Center"
+                                                                   HorizontalAlignment="Center" />
+                                                    </Grid>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource SurfaceBrush}" />
+                                                        <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="RootBorder" Property="RenderTransform">
+                                                            <Setter.Value>
+                                                                <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Setter TargetName="RootBorder" Property="RenderTransformOrigin" Value="0.5,0.5" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </Grid>
 
                 <ItemsControl Grid.Row="2"

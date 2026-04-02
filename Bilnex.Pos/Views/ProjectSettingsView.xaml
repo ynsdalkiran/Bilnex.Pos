@@ -608,6 +608,257 @@
                         </Border>
                     </Grid>
                 </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8A9;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="Hızlı Ürünler"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="Grid ve buton düzeni" FontSize="12" Opacity="0.8" />
+                        </StackPanel>
+                    </TabItem.Header>
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Padding="24" Background="{DynamicResource ShellContentBackgroundBrush}" BorderBrush="{StaticResource BorderBrushDark}" BorderThickness="1" CornerRadius="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="22" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="18" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Hızlı Ürünler Düzeni"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="24"
+                                           FontWeight="SemiBold" />
+
+                                <TextBlock Grid.Row="2"
+                                           Text="Hızlı ürünler sekmesindeki ızgara ve buton görünümünü yapılandırın. Değişiklikler POS ekranına dönüldüğünde uygulanır."
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="14"
+                                           TextWrapping="Wrap" />
+
+                                <!-- Sütun ayarları -->
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Ürün sütun sayısı  (1 – 6)"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="14" />
+                                        <TextBox Margin="0,10,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding QuickProductColumns, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="20"
+                                                 Background="{DynamicResource WindowBackgroundBrush}"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Kategori sütun sayısı  (1 – 10)"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="14" />
+                                        <TextBox Margin="0,10,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding QuickProductCategoryColumns, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="20"
+                                                 Background="{DynamicResource WindowBackgroundBrush}"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Boyut ayarları -->
+                                <Grid Grid.Row="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Min. buton yüksekliği px  (48 – 200)"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="14" />
+                                        <TextBox Margin="0,10,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding QuickProductMinButtonHeight, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="20"
+                                                 Background="{DynamicResource WindowBackgroundBrush}"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Buton yazı boyutu pt  (11 – 28)"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="14" />
+                                        <TextBox Margin="0,10,0,0"
+                                                 Height="48"
+                                                 Padding="14,10"
+                                                 Text="{Binding QuickProductButtonFontSize, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="20"
+                                                 Background="{DynamicResource WindowBackgroundBrush}"
+                                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                                 BorderThickness="1"
+                                                 VerticalContentAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Butonlar -->
+                                <StackPanel Grid.Row="8" Orientation="Horizontal">
+                                    <Button Width="160"
+                                            Height="46"
+                                            Command="{Binding SaveQuickProductLayoutCommand}"
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Style="{StaticResource PrimaryActionButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE74E;" Margin="0,0,8,0" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                                            <TextBlock Text="Kaydet" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Width="160"
+                                            Height="46"
+                                            Margin="12,0,0,0"
+                                            Command="{Binding ResetQuickProductLayoutCommand}"
+                                            FontSize="17"
+                                            FontWeight="SemiBold"
+                                            Style="{StaticResource SecondaryActionButtonStyle}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE777;" Margin="0,0,8,0" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" />
+                                            <TextBlock Text="Varsayılan" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Sağ panel: Anlık özet + önizleme -->
+                        <Border Grid.Column="2"
+                                Padding="24"
+                                Background="{DynamicResource ShellUserPanelBackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="20">
+                            <StackPanel>
+                                <TextBlock Text="Anlık Özet"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="22"
+                                           FontWeight="SemiBold" />
+
+                                <Border Margin="0,18,0,0"
+                                        Padding="16"
+                                        Background="{DynamicResource SurfaceAltBrush}"
+                                        BorderBrush="{StaticResource BorderBrushDark}"
+                                        BorderThickness="1"
+                                        CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Ürün Sütunları"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Text="{Binding QuickProductColumns}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="20"
+                                                   FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="0,12,0,0"
+                                        Padding="16"
+                                        Background="{DynamicResource SurfaceAltBrush}"
+                                        BorderBrush="{StaticResource BorderBrushDark}"
+                                        BorderThickness="1"
+                                        CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Kategori Sütunları"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Text="{Binding QuickProductCategoryColumns}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="20"
+                                                   FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="0,12,0,0"
+                                        Padding="16"
+                                        Background="{DynamicResource SurfaceAltBrush}"
+                                        BorderBrush="{StaticResource BorderBrushDark}"
+                                        BorderThickness="1"
+                                        CornerRadius="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Min. Yükseklik / Yazı Boyutu"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="13" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <TextBlock Text="{Binding QuickProductMinButtonHeight}"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Text=" px  /  "
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       FontSize="18"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding QuickProductButtonFontSize}"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Text=" pt"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       FontSize="18"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="0,18,0,0"
+                                        Padding="14,12"
+                                        Background="{DynamicResource WindowBackgroundBrush}"
+                                        CornerRadius="14">
+                                    <TextBlock Text="{Binding StatusMessage}"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="13"
+                                               TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
             </TabControl>
         </Grid>
     </Border>

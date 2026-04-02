@@ -36,6 +36,10 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     private string _labelPrinterName;
     private string _labelCopyCount;
     private bool _printBarcodeOnLabel;
+    private string _quickProductColumns;
+    private string _quickProductMinButtonHeight;
+    private string _quickProductButtonFontSize;
+    private string _quickProductCategoryColumns;
     private string _statusMessage = "Kaydetmek için tutarları virgül ile ayır.";
 
     public ProjectSettingsViewModel()
@@ -53,6 +57,10 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         _labelPrinterName = _settingsService.LabelPrinterName;
         _labelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
         _printBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
+        _quickProductColumns = _settingsService.QuickProductColumns.ToString(CultureInfo.InvariantCulture);
+        _quickProductMinButtonHeight = _settingsService.QuickProductMinButtonHeight.ToString(CultureInfo.InvariantCulture);
+        _quickProductButtonFontSize = _settingsService.QuickProductButtonFontSize.ToString(CultureInfo.InvariantCulture);
+        _quickProductCategoryColumns = _settingsService.QuickProductCategoryColumns.ToString(CultureInfo.InvariantCulture);
 
         SaveQuickAmountsCommand = new RelayCommand(SaveQuickAmounts);
         ResetQuickAmountsCommand = new RelayCommand(ResetQuickAmounts);
@@ -64,6 +72,8 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         ResetPriceChangeSettingsCommand = new RelayCommand(ResetPriceChangeSettings);
         SaveLabelPrintSettingsCommand = new RelayCommand(SaveLabelPrintSettings);
         ResetLabelPrintSettingsCommand = new RelayCommand(ResetLabelPrintSettings);
+        SaveQuickProductLayoutCommand = new RelayCommand(SaveQuickProductLayout);
+        ResetQuickProductLayoutCommand = new RelayCommand(ResetQuickProductLayout);
     }
 
     public IEnumerable<QuickAmountOption> QuickAmounts => _settingsService.QuickAmounts;
@@ -174,6 +184,30 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         set => SetProperty(ref _printBarcodeOnLabel, value);
     }
 
+    public string QuickProductColumns
+    {
+        get => _quickProductColumns;
+        set => SetProperty(ref _quickProductColumns, value);
+    }
+
+    public string QuickProductMinButtonHeight
+    {
+        get => _quickProductMinButtonHeight;
+        set => SetProperty(ref _quickProductMinButtonHeight, value);
+    }
+
+    public string QuickProductButtonFontSize
+    {
+        get => _quickProductButtonFontSize;
+        set => SetProperty(ref _quickProductButtonFontSize, value);
+    }
+
+    public string QuickProductCategoryColumns
+    {
+        get => _quickProductCategoryColumns;
+        set => SetProperty(ref _quickProductCategoryColumns, value);
+    }
+
     public string DefaultPaymentMethodDisplay => ResolvePaymentMethodTitle(DefaultPaymentMethod);
 
     public string ThemeDisplay => ResolveThemeTitle(Theme);
@@ -199,6 +233,10 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     public ICommand SaveLabelPrintSettingsCommand { get; }
 
     public ICommand ResetLabelPrintSettingsCommand { get; }
+
+    public ICommand SaveQuickProductLayoutCommand { get; }
+
+    public ICommand ResetQuickProductLayoutCommand { get; }
 
     private void SaveQuickAmounts()
     {
@@ -418,6 +456,60 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         LabelCopyCount = _settingsService.LabelCopyCount.ToString(CultureInfo.InvariantCulture);
         PrintBarcodeOnLabel = _settingsService.PrintBarcodeOnLabel;
         StatusMessage = "Etiket basımı ayarları varsayılana döndü.";
+    }
+
+    private void SaveQuickProductLayout()
+    {
+        if (!int.TryParse(QuickProductColumns, NumberStyles.Integer, CultureInfo.InvariantCulture, out var columns) &&
+            !int.TryParse(QuickProductColumns, NumberStyles.Integer, CultureInfo.CurrentCulture, out columns))
+        {
+            StatusMessage = $"Geçersiz ürün sütun sayısı: {QuickProductColumns}";
+            return;
+        }
+
+        if (!int.TryParse(QuickProductMinButtonHeight, NumberStyles.Integer, CultureInfo.InvariantCulture, out var minHeight) &&
+            !int.TryParse(QuickProductMinButtonHeight, NumberStyles.Integer, CultureInfo.CurrentCulture, out minHeight))
+        {
+            StatusMessage = $"Geçersiz min. yükseklik: {QuickProductMinButtonHeight}";
+            return;
+        }
+
+        if (!int.TryParse(QuickProductButtonFontSize, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fontSize) &&
+            !int.TryParse(QuickProductButtonFontSize, NumberStyles.Integer, CultureInfo.CurrentCulture, out fontSize))
+        {
+            StatusMessage = $"Geçersiz yazı boyutu: {QuickProductButtonFontSize}";
+            return;
+        }
+
+        if (!int.TryParse(QuickProductCategoryColumns, NumberStyles.Integer, CultureInfo.InvariantCulture, out var catColumns) &&
+            !int.TryParse(QuickProductCategoryColumns, NumberStyles.Integer, CultureInfo.CurrentCulture, out catColumns))
+        {
+            StatusMessage = $"Geçersiz kategori sütun sayısı: {QuickProductCategoryColumns}";
+            return;
+        }
+
+        _settingsService.UpdateQuickProductLayout(columns, minHeight, fontSize, catColumns);
+        QuickProductColumns = _settingsService.QuickProductColumns.ToString(CultureInfo.InvariantCulture);
+        QuickProductMinButtonHeight = _settingsService.QuickProductMinButtonHeight.ToString(CultureInfo.InvariantCulture);
+        QuickProductButtonFontSize = _settingsService.QuickProductButtonFontSize.ToString(CultureInfo.InvariantCulture);
+        QuickProductCategoryColumns = _settingsService.QuickProductCategoryColumns.ToString(CultureInfo.InvariantCulture);
+        StatusMessage = "Hızlı ürün düzeni güncellendi.";
+        AppDialogService.ShowSaved("Hızlı ürün düzeni ayarları");
+    }
+
+    private void ResetQuickProductLayout()
+    {
+        if (!AppDialogService.ShowResetConfirmation("Hızlı ürün düzeni"))
+        {
+            return;
+        }
+
+        _settingsService.ResetQuickProductLayout();
+        QuickProductColumns = _settingsService.QuickProductColumns.ToString(CultureInfo.InvariantCulture);
+        QuickProductMinButtonHeight = _settingsService.QuickProductMinButtonHeight.ToString(CultureInfo.InvariantCulture);
+        QuickProductButtonFontSize = _settingsService.QuickProductButtonFontSize.ToString(CultureInfo.InvariantCulture);
+        QuickProductCategoryColumns = _settingsService.QuickProductCategoryColumns.ToString(CultureInfo.InvariantCulture);
+        StatusMessage = "Hızlı ürün düzeni varsayılana döndü.";
     }
 
     private string BuildQuickAmountsText()

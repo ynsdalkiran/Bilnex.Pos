@@ -25,6 +25,10 @@ public sealed class PosSettingsService
     private string _storeName = "Bilnex POS";
     private string _cashierName = "Demo Kasiyer";
     private string _terminalLabel = "Ana Kasa";
+    private int _quickProductColumns = 2;
+    private int _quickProductMinButtonHeight = 72;
+    private int _quickProductButtonFontSize = 16;
+    private int _quickProductCategoryColumns = 5;
 
     private PosSettingsService()
     {
@@ -122,6 +126,42 @@ public sealed class PosSettingsService
     {
         get => _terminalLabel;
         private set => _terminalLabel = value;
+    }
+
+    public int QuickProductColumns
+    {
+        get => _quickProductColumns;
+        private set => _quickProductColumns = value;
+    }
+
+    public int QuickProductMinButtonHeight
+    {
+        get => _quickProductMinButtonHeight;
+        private set => _quickProductMinButtonHeight = value;
+    }
+
+    public int QuickProductButtonFontSize
+    {
+        get => _quickProductButtonFontSize;
+        private set => _quickProductButtonFontSize = value;
+    }
+
+    public int QuickProductCategoryColumns
+    {
+        get => _quickProductCategoryColumns;
+        private set => _quickProductCategoryColumns = value;
+    }
+
+    public void UpdateQuickProductLayout(int columns, int minButtonHeight, int buttonFontSize, int categoryColumns)
+    {
+        ApplyQuickProductLayout(columns, minButtonHeight, buttonFontSize, categoryColumns);
+        SaveSettings();
+    }
+
+    public void ResetQuickProductLayout()
+    {
+        ApplyQuickProductLayout(2, 72, 16, 5);
+        SaveSettings();
     }
 
     public void UpdateQuickAmounts(IEnumerable<decimal> amounts)
@@ -232,6 +272,11 @@ public sealed class PosSettingsService
                 settings.LabelPrinterName,
                 settings.LabelCopyCount,
                 settings.PrintBarcodeOnLabel);
+            ApplyQuickProductLayout(
+                settings.QuickProductColumns,
+                settings.QuickProductMinButtonHeight,
+                settings.QuickProductButtonFontSize,
+                settings.QuickProductCategoryColumns);
             SaveSettings();
         }
         catch
@@ -261,7 +306,11 @@ public sealed class PosSettingsService
             LabelTemplate = LabelTemplate,
             LabelPrinterName = LabelPrinterName,
             LabelCopyCount = LabelCopyCount,
-            PrintBarcodeOnLabel = PrintBarcodeOnLabel
+            PrintBarcodeOnLabel = PrintBarcodeOnLabel,
+            QuickProductColumns = QuickProductColumns,
+            QuickProductMinButtonHeight = QuickProductMinButtonHeight,
+            QuickProductButtonFontSize = QuickProductButtonFontSize,
+            QuickProductCategoryColumns = QuickProductCategoryColumns
         };
 
         var json = JsonSerializer.Serialize(settings, _jsonOptions);
@@ -276,6 +325,7 @@ public sealed class PosSettingsService
         ApplyGeneralSettings("Cash", "Dark", "Varsayılan Yazıcı");
         ApplyPriceChangeSettings("Percentage", 0m, true);
         ApplyLabelPrintSettings("50x30", "Varsayılan Etiket Yazıcısı", 1, true);
+        ApplyQuickProductLayout(2, 72, 16, 5);
     }
 
     private void ApplyQuickAmounts(IEnumerable<decimal> amounts)
@@ -397,6 +447,14 @@ public sealed class PosSettingsService
         };
     }
 
+    private void ApplyQuickProductLayout(int columns, int minButtonHeight, int buttonFontSize, int categoryColumns)
+    {
+        QuickProductColumns = Math.Max(1, Math.Min(6, columns));
+        QuickProductMinButtonHeight = Math.Max(48, Math.Min(200, minButtonHeight));
+        QuickProductButtonFontSize = Math.Max(11, Math.Min(28, buttonFontSize));
+        QuickProductCategoryColumns = Math.Max(1, Math.Min(10, categoryColumns));
+    }
+
     private sealed class PosSettingsFile
     {
         public List<decimal> QuickAmounts { get; set; } = new();
@@ -422,5 +480,13 @@ public sealed class PosSettingsService
         public int LabelCopyCount { get; set; } = 1;
 
         public bool PrintBarcodeOnLabel { get; set; } = true;
+
+        public int QuickProductColumns { get; set; } = 2;
+
+        public int QuickProductMinButtonHeight { get; set; } = 72;
+
+        public int QuickProductButtonFontSize { get; set; } = 16;
+
+        public int QuickProductCategoryColumns { get; set; } = 5;
     }
 }

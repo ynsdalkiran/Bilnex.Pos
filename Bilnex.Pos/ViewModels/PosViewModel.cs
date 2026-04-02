@@ -434,6 +434,14 @@ public sealed class PosViewModel : ViewModelBase
 
     public ObservableCollection<QuickProductCategoryItem> QuickProductCategories { get; }
 
+    public int QuickProductColumns => _settingsService.QuickProductColumns;
+
+    public int QuickProductMinButtonHeight => _settingsService.QuickProductMinButtonHeight;
+
+    public int QuickProductButtonFontSize => _settingsService.QuickProductButtonFontSize;
+
+    public int QuickProductCategoryColumns => _settingsService.QuickProductCategoryColumns;
+
     public ObservableCollection<PosActionTabItem> ActionTabs { get; }
 
     public ObservableCollection<PosActionItem> VisibleActionItems { get; }
