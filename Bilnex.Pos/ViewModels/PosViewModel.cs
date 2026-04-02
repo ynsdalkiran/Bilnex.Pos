@@ -27,6 +27,10 @@ public sealed class PosViewModel : ViewModelBase
     private const string ReceiptActionsTabKey = "receipt";
     private const string DiscountInputRateTarget = "rate";
     private const string DiscountInputAmountTarget = "amount";
+    private const string DiscountInputRoundTarget = "round";
+    private const string ReceiptEditorModeDiscount = "discount";
+    private const string ReceiptEditorModePreset = "preset";
+    private const string ReceiptEditorModeRound = "round";
 
     private readonly Dictionary<string, decimal> _productPrices = new()
     {
@@ -63,6 +67,7 @@ public sealed class PosViewModel : ViewModelBase
 
     private readonly PosStateManager _stateManager;
     private readonly DispatcherTimer _scannerCompleteTimer;
+    private readonly DispatcherTimer _clockTimer;
     private readonly PosSettingsService _settingsService;
 
     private Receipt _currentReceipt;
@@ -75,13 +80,17 @@ public sealed class PosViewModel : ViewModelBase
     private bool _isReceiptDiscountScreenOpen;
     private bool _isHeldSalesScreenOpen;
     private bool _isReceiptHistoryScreenOpen;
+    private bool _isProductActionsModalOpen;
     private string _paymentMethod = "Cash";
     private string _receivedAmountText = string.Empty;
     private string _receiptDiscountRateText = string.Empty;
     private string _receiptDiscountAmountText = string.Empty;
+    private string _receiptRoundTargetText = string.Empty;
     private string _receiptDiscountInputTarget = DiscountInputRateTarget;
     private string _receiptDiscountLabel = string.Empty;
+    private string _receiptDiscountEditorMode = ReceiptEditorModeDiscount;
     private ReceiptRoundMode _receiptRoundMode = ReceiptRoundMode.None;
+    private ReceiptDiscountPresetItem? _selectedReceiptDiscountPreset;
     private DateTime? _lastBarcodeCharacterAtUtc;
     private QuickProductCategoryItem? _selectedQuickProductCategory;
     private PosActionTabItem? _selectedActionTab;
@@ -96,6 +105,14 @@ public sealed class PosViewModel : ViewModelBase
             Interval = TimeSpan.FromMilliseconds(ScannerCompleteDelayMilliseconds)
         };
         _scannerCompleteTimer.Tick += ScannerCompleteTimer_Tick;
+
+        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _clockTimer.Tick += (_, _) =>
+        {
+            OnPropertyChanged(nameof(SessionTimeText));
+            OnPropertyChanged(nameof(SessionDateText));
+        };
+        _clockTimer.Start();
 
         _currentReceipt = CreateReceipt();
         SubscribeToReceipt(_currentReceipt);
@@ -129,7 +146,6 @@ public sealed class PosViewModel : ViewModelBase
         ActionTabs = new ObservableCollection<PosActionTabItem>
         {
             new(QuickProductsTabKey, "Hızlı Ürünler"),
-            new(ProductActionsTabKey, "Ürün İşlemleri"),
             new(ReceiptActionsTabKey, "Fiş İşlemleri")
         };
         VisibleActionItems = new ObservableCollection<PosActionItem>();
@@ -140,6 +156,10 @@ public sealed class PosViewModel : ViewModelBase
             new("Sadakat %7,5", ReceiptDiscountPresetKind.Percentage, 7.5m),
             new("Kampanya 20 TL", ReceiptDiscountPresetKind.Amount, 20m)
         };
+        ReceiptRoundTargetPresets = new ObservableCollection<ReceiptRoundTargetPresetItem>();
+        ReceiptRoundPracticalPresets = new ObservableCollection<ReceiptRoundTargetPresetItem>();
+        ReceiptRoundNearestPresets = new ObservableCollection<ReceiptRoundTargetPresetItem>();
+        ReceiptRoundUpperPresets = new ObservableCollection<ReceiptRoundTargetPresetItem>();
         BarcodeHistory = new ObservableCollection<BarcodeHistoryItem>();
         HeldSales = new ObservableCollection<HeldSaleItem>();
         CompletedReceipts = new ObservableCollection<Receipt>();
@@ -294,6 +314,8 @@ public sealed class PosViewModel : ViewModelBase
                 }
             },
             parameter => parameter is PosActionItem);
+        OpenProductActionsModalCommand = new RelayCommand(OpenProductActionsModal, () => SelectedItem is not null);
+        CloseProductActionsModalCommand = new RelayCommand(CloseProductActionsModal);
         OpenReceiptDiscountCommand = new RelayCommand(OpenReceiptDiscountScreen, () => BasketItems.Count > 0);
         CloseReceiptDiscountCommand = new RelayCommand(CloseReceiptDiscountScreen);
         ApplyReceiptDiscountCommand = new RelayCommand(ApplyReceiptDiscount, () => BasketItems.Count > 0);
@@ -306,12 +328,48 @@ public sealed class PosViewModel : ViewModelBase
                 }
             },
             parameter => parameter is ReceiptDiscountPresetItem);
+        SelectReceiptRoundTargetPresetCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is ReceiptRoundTargetPresetItem preset)
+                {
+                    SelectReceiptRoundTargetPreset(preset);
+                }
+            },
+            parameter => parameter is ReceiptRoundTargetPresetItem);
+        SelectReceiptDiscountEditorModeCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string editorMode)
+                {
+                    SelectReceiptDiscountEditorMode(editorMode);
+                }
+            },
+            parameter => parameter is string);
         SetReceiptDiscountInputTargetCommand = new RelayCommand(
             parameter =>
             {
                 if (parameter is string target)
                 {
                     ReceiptDiscountInputTarget = target;
+                }
+            },
+            parameter => parameter is string);
+        EditReceiptDiscountSourceCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string sourceKey)
+                {
+                    EditReceiptDiscountSource(sourceKey);
+                }
+            },
+            parameter => parameter is string);
+        RemoveReceiptDiscountSourceCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string sourceKey)
+                {
+                    RemoveReceiptDiscountSource(sourceKey);
                 }
             },
             parameter => parameter is string);
@@ -382,6 +440,20 @@ public sealed class PosViewModel : ViewModelBase
 
     public ObservableCollection<ReceiptDiscountPresetItem> ReceiptDiscountPresets { get; }
 
+    public ReceiptDiscountPresetItem? SelectedReceiptDiscountPreset
+    {
+        get => _selectedReceiptDiscountPreset;
+        private set => SetProperty(ref _selectedReceiptDiscountPreset, value);
+    }
+
+    public ObservableCollection<ReceiptRoundTargetPresetItem> ReceiptRoundTargetPresets { get; }
+
+    public ObservableCollection<ReceiptRoundTargetPresetItem> ReceiptRoundPracticalPresets { get; }
+
+    public ObservableCollection<ReceiptRoundTargetPresetItem> ReceiptRoundNearestPresets { get; }
+
+    public ObservableCollection<ReceiptRoundTargetPresetItem> ReceiptRoundUpperPresets { get; }
+
     public ObservableCollection<BarcodeHistoryItem> BarcodeHistory { get; }
 
     public ObservableCollection<HeldSaleItem> HeldSales { get; }
@@ -438,6 +510,10 @@ public sealed class PosViewModel : ViewModelBase
 
     public ICommand TriggerPosActionCommand { get; }
 
+    public ICommand OpenProductActionsModalCommand { get; }
+
+    public ICommand CloseProductActionsModalCommand { get; }
+
     public ICommand OpenReceiptDiscountCommand { get; }
 
     public ICommand CloseReceiptDiscountCommand { get; }
@@ -446,7 +522,15 @@ public sealed class PosViewModel : ViewModelBase
 
     public ICommand SelectReceiptDiscountPresetCommand { get; }
 
+    public ICommand SelectReceiptRoundTargetPresetCommand { get; }
+
+    public ICommand SelectReceiptDiscountEditorModeCommand { get; }
+
     public ICommand SetReceiptDiscountInputTargetCommand { get; }
+
+    public ICommand EditReceiptDiscountSourceCommand { get; }
+
+    public ICommand RemoveReceiptDiscountSourceCommand { get; }
 
     public ICommand AppendReceiptDiscountNumpadCommand { get; }
 
@@ -464,11 +548,24 @@ public sealed class PosViewModel : ViewModelBase
             if (SetProperty(ref _selectedItem, value))
             {
                 RefreshActionItemStates();
+                ((RelayCommand)OpenProductActionsModalCommand).RaiseCanExecuteChanged();
             }
         }
     }
 
     public string ReceiptNo => CurrentReceipt.ReceiptNo;
+
+    public string StoreName => _settingsService.StoreName;
+
+    public string CashierName => _settingsService.CashierName;
+
+    public string TerminalLabel => _settingsService.TerminalLabel;
+
+    public string SessionDateText =>
+        DateTime.Now.ToString("dd MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
+
+    public string SessionTimeText =>
+        DateTime.Now.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
 
     public QuickProductCategoryItem? SelectedQuickProductCategory
     {
@@ -517,6 +614,7 @@ public sealed class PosViewModel : ViewModelBase
             _isUpdatingReceiptDiscountInputs = true;
             ReceiptDiscountAmountText = string.Empty;
             _isUpdatingReceiptDiscountInputs = false;
+            ReceiptDiscountEditorMode = ReceiptEditorModeDiscount;
             ReceiptDiscountLabel = "Manuel yüzde indirimi";
             NotifyReceiptDiscountPreviewChanged();
         }
@@ -540,7 +638,29 @@ public sealed class PosViewModel : ViewModelBase
             _isUpdatingReceiptDiscountInputs = true;
             ReceiptDiscountRateText = string.Empty;
             _isUpdatingReceiptDiscountInputs = false;
+            ReceiptDiscountEditorMode = ReceiptEditorModeDiscount;
             ReceiptDiscountLabel = "Manuel tutar indirimi";
+            NotifyReceiptDiscountPreviewChanged();
+        }
+    }
+
+    public string ReceiptRoundTargetText
+    {
+        get => _receiptRoundTargetText;
+        set
+        {
+            if (!SetProperty(ref _receiptRoundTargetText, value))
+            {
+                return;
+            }
+
+            if (_isUpdatingReceiptDiscountInputs)
+            {
+                return;
+            }
+
+            ReceiptDiscountEditorMode = ReceiptEditorModeRound;
+            ReceiptDiscountInputTarget = DiscountInputRoundTarget;
             NotifyReceiptDiscountPreviewChanged();
         }
     }
@@ -563,6 +683,20 @@ public sealed class PosViewModel : ViewModelBase
         private set => SetProperty(ref _receiptDiscountLabel, value);
     }
 
+    public string ReceiptDiscountEditorMode
+    {
+        get => _receiptDiscountEditorMode;
+        private set
+        {
+            if (SetProperty(ref _receiptDiscountEditorMode, value))
+            {
+                OnPropertyChanged(nameof(IsReceiptDiscountModeSelected));
+                OnPropertyChanged(nameof(IsReceiptPresetModeSelected));
+                OnPropertyChanged(nameof(IsReceiptRoundModeSelected));
+            }
+        }
+    }
+
     public ReceiptRoundMode ReceiptRoundMode
     {
         get => _receiptRoundMode;
@@ -578,22 +712,94 @@ public sealed class PosViewModel : ViewModelBase
 
     public decimal ReceiptDiscountSubtotal => CurrentReceipt.SubtotalAmount;
 
-    public decimal ReceiptDiscountValue => CalculateReceiptDiscountValue();
+    public decimal ReceiptDiscountValue => CurrentReceipt.DiscountAmount;
 
-    public decimal ReceiptDiscountRoundAdjustment => CalculateReceiptRoundAdjustment();
+    public decimal ReceiptDiscountRoundAdjustment => CurrentReceipt.RoundAdjustment;
 
-    public decimal ReceiptDiscountPreviewTotal => Math.Max(0m, ReceiptDiscountSubtotal - ReceiptDiscountValue + ReceiptDiscountRoundAdjustment);
+    public decimal ReceiptDiscountPreviewTotal => Math.Max(0m, ReceiptDiscountSubtotal - GetPreviewReceiptDiscountValue() + GetPreviewReceiptRoundAdjustment());
 
-    public string ReceiptDiscountInputTargetText => ReceiptDiscountInputTarget == DiscountInputAmountTarget
-        ? "Tutar indirimi"
-        : "Yüzde indirimi";
-
-    public string ReceiptRoundModeText => ReceiptRoundMode switch
+    public string ReceiptDiscountInputTargetText => ReceiptDiscountInputTarget switch
     {
-        ReceiptRoundMode.Up => "Yukarı yuvarla",
-        ReceiptRoundMode.Down => "Aşağı yuvarla",
-        _ => "Yuvarlama yok"
+        DiscountInputAmountTarget => "Tutar indirimi",
+        DiscountInputRoundTarget => "Hedef fiş tutarı",
+        _ => "Yüzde indirimi"
     };
+
+    public bool IsReceiptDiscountModeSelected => ReceiptDiscountEditorMode == ReceiptEditorModeDiscount;
+
+    public bool IsReceiptPresetModeSelected => ReceiptDiscountEditorMode == ReceiptEditorModePreset;
+
+    public bool IsReceiptRoundModeSelected => ReceiptDiscountEditorMode == ReceiptEditorModeRound;
+
+    public decimal ReceiptLineDiscountValue => 0m;
+
+    public string ReceiptLineDiscountText => ReceiptLineDiscountValue > 0m
+        ? $"{ReceiptLineDiscountValue:0.00} TL"
+        : "Yok";
+
+    public string ReceiptLineDiscountDescription => ReceiptLineDiscountValue > 0m
+        ? "Satırlardan gelen indirim"
+        : "Bu satışta satır indirimi bulunmuyor";
+
+    public bool HasReceiptDiscount => ReceiptDiscountValue > 0m;
+
+    public string ReceiptDiscountValueText => HasReceiptDiscount
+        ? $"{ReceiptDiscountValue:0.00} TL"
+        : "Yok";
+
+    public string ReceiptDiscountDescription => HasReceiptDiscount
+        ? CurrentReceipt.DiscountLabel
+        : "Fişe manuel indirim eklenmedi";
+
+    public bool HasReceiptRoundAdjustment => ReceiptDiscountRoundAdjustment != 0m;
+
+    public string ReceiptRoundValueText => HasReceiptRoundAdjustment
+        ? $"{ReceiptDiscountRoundAdjustment:+0.00;-0.00;0.00} TL"
+        : "Yok";
+
+    public string ReceiptRoundTargetTextDisplay => string.IsNullOrWhiteSpace(ReceiptRoundTargetText)
+        ? "Hedef girilmedi"
+        : $"{ReceiptRoundTargetText} TL";
+
+    public string ReceiptRoundModeText
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(ReceiptRoundTargetText))
+            {
+                var previewRoundAdjustment = GetPreviewReceiptRoundAdjustment();
+
+                if (previewRoundAdjustment > 0m)
+                {
+                    return $"Hedef toplam: {ReceiptRoundTargetText} TL - yukarı ayarlanacak";
+                }
+
+                if (previewRoundAdjustment < 0m)
+                {
+                    return $"Hedef toplam: {ReceiptRoundTargetText} TL - aşağı ayarlanacak";
+                }
+
+                return $"Hedef toplam: {ReceiptRoundTargetText} TL";
+            }
+
+            if (CurrentReceipt.RoundAdjustment == 0m)
+            {
+                return "Yuvarlama yok";
+            }
+
+            if (CurrentReceipt.RoundAdjustment > 0m)
+            {
+                return $"Hedef toplam: {CurrentReceipt.TotalAmount:0.00} TL - yukarı ayarlanacak";
+            }
+
+            if (CurrentReceipt.RoundAdjustment < 0m)
+            {
+                return $"Hedef toplam: {CurrentReceipt.TotalAmount:0.00} TL - aşağı ayarlanacak";
+            }
+
+            return $"Hedef toplam: {CurrentReceipt.TotalAmount:0.00} TL";
+        }
+    }
 
     public string Barcode
     {
@@ -648,6 +854,15 @@ public sealed class PosViewModel : ViewModelBase
         get => _isReceiptHistoryScreenOpen;
         private set => SetProperty(ref _isReceiptHistoryScreenOpen, value);
     }
+
+    public bool IsProductActionsModalOpen
+    {
+        get => _isProductActionsModalOpen;
+        private set => SetProperty(ref _isProductActionsModalOpen, value);
+    }
+
+    public IEnumerable<PosActionItem> ProductActionItems =>
+        _allActionItems.Where(x => x.TabKey == ProductActionsTabKey);
 
     public string PaymentMethod
     {
@@ -1041,6 +1256,22 @@ public sealed class PosViewModel : ViewModelBase
         }
     }
 
+    public void OpenProductActionsModal()
+    {
+        if (SelectedItem is null)
+        {
+            return;
+        }
+
+        RefreshActionItemStates();
+        IsProductActionsModalOpen = true;
+    }
+
+    private void CloseProductActionsModal()
+    {
+        IsProductActionsModalOpen = false;
+    }
+
     private void OpenReceiptDiscountScreen()
     {
         if (BasketItems.Count == 0)
@@ -1058,63 +1289,201 @@ public sealed class PosViewModel : ViewModelBase
     private void CloseReceiptDiscountScreen()
     {
         IsReceiptDiscountScreenOpen = false;
+        foreach (var p in ReceiptDiscountPresets) p.IsSelected = false;
+        SelectedReceiptDiscountPreset = null;
     }
 
     private void LoadCurrentReceiptDiscountState()
     {
         _isUpdatingReceiptDiscountInputs = true;
-        ReceiptDiscountRateText = string.Empty;
-        ReceiptDiscountAmountText = CurrentReceipt.DiscountAmount > 0m
-            ? CurrentReceipt.DiscountAmount.ToString("0.00", CultureInfo.InvariantCulture)
+        if (CurrentReceipt.DiscountRate > 0m)
+        {
+            ReceiptDiscountRateText = CurrentReceipt.DiscountRate.ToString("0.##", CultureInfo.CurrentCulture);
+            ReceiptDiscountAmountText = string.Empty;
+        }
+        else
+        {
+            ReceiptDiscountRateText = string.Empty;
+            ReceiptDiscountAmountText = CurrentReceipt.DiscountAmount > 0m
+                ? CurrentReceipt.DiscountAmount.ToString("0.00", CultureInfo.CurrentCulture)
+                : string.Empty;
+        }
+        ReceiptRoundTargetText = CurrentReceipt.RoundAdjustment != 0m
+            ? CurrentReceipt.TotalAmount.ToString("0.00", CultureInfo.CurrentCulture)
             : string.Empty;
         _isUpdatingReceiptDiscountInputs = false;
-        ReceiptDiscountLabel = string.IsNullOrWhiteSpace(CurrentReceipt.DiscountLabel) ? "Manuel düzenleme" : CurrentReceipt.DiscountLabel;
+        ReceiptDiscountLabel = string.IsNullOrWhiteSpace(CurrentReceipt.DiscountLabel) ? "Fiş indirimi yok" : CurrentReceipt.DiscountLabel;
         ReceiptRoundMode = CurrentReceipt.RoundAdjustment switch
         {
             > 0m => ReceiptRoundMode.Up,
             < 0m => ReceiptRoundMode.Down,
             _ => ReceiptRoundMode.None
         };
-        ReceiptDiscountInputTarget = DiscountInputAmountTarget;
+        ReceiptDiscountInputTarget = CurrentReceipt.DiscountRate > 0m
+            ? DiscountInputRateTarget
+            : DiscountInputAmountTarget;
+        ReceiptDiscountEditorMode = ReceiptEditorModeDiscount;
+        foreach (var p in ReceiptDiscountPresets) p.IsSelected = false;
+        SelectedReceiptDiscountPreset = null;
+        RefreshReceiptRoundTargetPresets();
         NotifyReceiptDiscountPreviewChanged();
     }
 
     private void ApplyReceiptDiscount()
     {
-        var discountAmount = CalculateReceiptDiscountValue();
-        var roundAdjustment = CalculateReceiptRoundAdjustment();
-        var label = string.IsNullOrWhiteSpace(ReceiptDiscountLabel) ? "Fiş indirimi" : ReceiptDiscountLabel;
+        var discountAmount = GetPreviewReceiptDiscountValue();
+        var roundAdjustment = GetPreviewReceiptRoundAdjustment();
+        var discountRate = HasDraftReceiptDiscountInput() ? ParseAmount(ReceiptDiscountRateText) : CurrentReceipt.DiscountRate;
+        var label = HasDraftReceiptDiscountInput()
+            ? (string.IsNullOrWhiteSpace(ReceiptDiscountLabel) ? "Fiş indirimi" : ReceiptDiscountLabel)
+            : CurrentReceipt.DiscountLabel;
 
-        CurrentReceipt.ApplyReceiptAdjustment(discountAmount, roundAdjustment, label);
-        IsReceiptDiscountScreenOpen = false;
+        CurrentReceipt.ApplyReceiptAdjustment(discountAmount, roundAdjustment, label, discountRate);
+        ClearReceiptDiscountDraftInputs();
         RefreshDisplayValues();
-        AppDialogService.ShowToastSuccess("Fiş İndirimi Uygulandı", $"{label} fişe uygulandı.", 3);
+        NotifyReceiptDiscountPreviewChanged();
+        AppDialogService.ShowToastSuccess(
+            "Fiş İndirimi Uygulandı",
+            $"{label} kaydedildi. Yeni toplam: {CurrentReceipt.TotalAmount:0.00} TL",
+            3);
     }
 
     private void SelectReceiptDiscountPreset(ReceiptDiscountPresetItem preset)
     {
-        _isUpdatingReceiptDiscountInputs = true;
+        // Hazır kartlar tek tıkla anında uygular — ayrıca Uygula'ya basmak gerekmez.
+        var subtotal = ReceiptDiscountSubtotal;
+        decimal discountAmount;
+        decimal discountRate;
+
         if (preset.Kind == ReceiptDiscountPresetKind.Percentage)
         {
-            ReceiptDiscountRateText = preset.Value.ToString("0.##", CultureInfo.InvariantCulture);
-            ReceiptDiscountAmountText = string.Empty;
+            discountRate = preset.Value;
+            discountAmount = Math.Min(subtotal, decimal.Round(subtotal * discountRate / 100m, 2));
         }
         else
         {
-            ReceiptDiscountRateText = string.Empty;
-            ReceiptDiscountAmountText = preset.Value.ToString("0.00", CultureInfo.InvariantCulture);
+            discountRate = 0m;
+            discountAmount = Math.Min(subtotal, decimal.Round(preset.Value, 2));
         }
 
-        _isUpdatingReceiptDiscountInputs = false;
+        CurrentReceipt.ApplyReceiptAdjustment(discountAmount, CurrentReceipt.RoundAdjustment, preset.Title, discountRate);
+        foreach (var p in ReceiptDiscountPresets) p.IsSelected = false;
+        preset.IsSelected = true;
+        SelectedReceiptDiscountPreset = preset;
+        ClearReceiptDiscountDraftInputs();
         ReceiptDiscountLabel = preset.Title;
+        ReceiptDiscountEditorMode = ReceiptEditorModePreset;
+        RefreshDisplayValues();
+        NotifyReceiptDiscountPreviewChanged();
+        AppDialogService.ShowToastSuccess(
+            "Hazır İndirim Uygulandı",
+            $"{preset.Title} uygulandı. Yeni toplam: {CurrentReceipt.TotalAmount:0.00} TL",
+            3);
+    }
+
+    private void SelectReceiptRoundTargetPreset(ReceiptRoundTargetPresetItem preset)
+    {
+        ReceiptDiscountEditorMode = ReceiptEditorModeRound;
+        ReceiptDiscountInputTarget = DiscountInputRoundTarget;
+        ReceiptRoundTargetText = preset.Value.ToString("0.00", CultureInfo.CurrentCulture);
+    }
+
+    private void SelectReceiptDiscountEditorMode(string editorMode)
+    {
+        ReceiptDiscountEditorMode = editorMode switch
+        {
+            ReceiptEditorModePreset => ReceiptEditorModePreset,
+            ReceiptEditorModeRound => ReceiptEditorModeRound,
+            _ => ReceiptEditorModeDiscount
+        };
+
+        // Sync input target with the new editor mode so numpad/keyboard
+        // input goes to the right field immediately after tab switch.
+        if (ReceiptDiscountEditorMode == ReceiptEditorModeRound)
+        {
+            ReceiptDiscountInputTarget = DiscountInputRoundTarget;
+        }
+        else if (ReceiptDiscountInputTarget == DiscountInputRoundTarget)
+        {
+            ReceiptDiscountInputTarget = DiscountInputAmountTarget;
+        }
+    }
+
+    private void EditReceiptDiscountSource(string sourceKey)
+    {
+        switch (sourceKey)
+        {
+            case "discount":
+                _isUpdatingReceiptDiscountInputs = true;
+                if (CurrentReceipt.DiscountRate > 0m)
+                {
+                    ReceiptDiscountRateText = CurrentReceipt.DiscountRate.ToString("0.##", CultureInfo.CurrentCulture);
+                    ReceiptDiscountAmountText = string.Empty;
+                }
+                else
+                {
+                    ReceiptDiscountRateText = string.Empty;
+                    ReceiptDiscountAmountText = CurrentReceipt.DiscountAmount > 0m
+                        ? CurrentReceipt.DiscountAmount.ToString("0.00", CultureInfo.CurrentCulture)
+                        : string.Empty;
+                }
+                _isUpdatingReceiptDiscountInputs = false;
+                ReceiptDiscountLabel = CurrentReceipt.DiscountAmount > 0m
+                    ? CurrentReceipt.DiscountLabel
+                    : "Fiş indirimi yok";
+                ReceiptDiscountEditorMode = ReceiptEditorModeDiscount;
+                ReceiptDiscountInputTarget = CurrentReceipt.DiscountRate > 0m
+                    ? DiscountInputRateTarget
+                    : DiscountInputAmountTarget;
+                break;
+            case "round":
+                _isUpdatingReceiptDiscountInputs = true;
+                ReceiptRoundTargetText = CurrentReceipt.RoundAdjustment != 0m
+                    ? CurrentReceipt.TotalAmount.ToString("0.00", CultureInfo.CurrentCulture)
+                    : string.Empty;
+                _isUpdatingReceiptDiscountInputs = false;
+                ReceiptRoundMode = CurrentReceipt.RoundAdjustment switch
+                {
+                    > 0m => ReceiptRoundMode.Up,
+                    < 0m => ReceiptRoundMode.Down,
+                    _ => ReceiptRoundMode.None
+                };
+                ReceiptDiscountEditorMode = ReceiptEditorModeRound;
+                ReceiptDiscountInputTarget = DiscountInputRoundTarget;
+                break;
+            default:
+                AppDialogService.ShowInfo("Satır İndirimi", "Satır indirimleri ürün işlemleri ekranından yönetilir.");
+                break;
+        }
+
+        NotifyReceiptDiscountPreviewChanged();
+    }
+
+    private void RemoveReceiptDiscountSource(string sourceKey)
+    {
+        switch (sourceKey)
+        {
+            case "discount":
+                CurrentReceipt.ApplyReceiptAdjustment(0m, CurrentReceipt.RoundAdjustment, string.Empty, 0m);
+                ClearReceiptDiscountDraftInputs();
+                ReceiptDiscountLabel = "Fiş indirimi yok";
+                break;
+            case "round":
+                CurrentReceipt.ApplyReceiptAdjustment(CurrentReceipt.DiscountAmount, 0m, CurrentReceipt.DiscountLabel, CurrentReceipt.DiscountRate);
+                ClearReceiptDiscountDraftInputs();
+                ReceiptRoundMode = ReceiptRoundMode.None;
+                break;
+            default:
+                return;
+        }
+
+        RefreshDisplayValues();
         NotifyReceiptDiscountPreviewChanged();
     }
 
     private void AppendReceiptDiscountInput(string value)
     {
-        var currentValue = ReceiptDiscountInputTarget == DiscountInputRateTarget
-            ? ReceiptDiscountRateText
-            : ReceiptDiscountAmountText;
+        var currentValue = GetCurrentReceiptDiscountInputValue();
 
         if (value == "," || value == ".")
         {
@@ -1135,9 +1504,7 @@ public sealed class PosViewModel : ViewModelBase
 
     private void BackspaceReceiptDiscountInput()
     {
-        var currentValue = ReceiptDiscountInputTarget == DiscountInputRateTarget
-            ? ReceiptDiscountRateText
-            : ReceiptDiscountAmountText;
+        var currentValue = GetCurrentReceiptDiscountInputValue();
 
         if (string.IsNullOrEmpty(currentValue))
         {
@@ -1160,11 +1527,18 @@ public sealed class PosViewModel : ViewModelBase
             return;
         }
 
+        if (ReceiptDiscountInputTarget == DiscountInputRoundTarget)
+        {
+            ReceiptRoundTargetText = value;
+            return;
+        }
+
         ReceiptDiscountAmountText = value;
     }
 
     private void SetReceiptRoundMode(string roundMode)
     {
+        ReceiptDiscountEditorMode = ReceiptEditorModeRound;
         ReceiptRoundMode = roundMode switch
         {
             "Up" => ReceiptRoundMode.Up,
@@ -1187,24 +1561,279 @@ public sealed class PosViewModel : ViewModelBase
         return Math.Min(subtotal, decimal.Round(amount, 2));
     }
 
-    private decimal CalculateReceiptRoundAdjustment()
+    private decimal CalculateReceiptRoundAdjustment(decimal effectiveDiscountAmount)
     {
-        var baseTotal = Math.Max(0m, ReceiptDiscountSubtotal - CalculateReceiptDiscountValue());
-
-        return ReceiptRoundMode switch
+        var baseTotal = Math.Max(0m, ReceiptDiscountSubtotal - effectiveDiscountAmount);
+        if (string.IsNullOrWhiteSpace(ReceiptRoundTargetText))
         {
-            ReceiptRoundMode.Up => decimal.Round(Math.Ceiling(baseTotal) - baseTotal, 2),
-            ReceiptRoundMode.Down => decimal.Round(Math.Floor(baseTotal) - baseTotal, 2),
-            _ => 0m
-        };
+            return 0m;
+        }
+
+        var targetTotal = Math.Max(0m, ParseAmount(ReceiptRoundTargetText));
+        return decimal.Round(targetTotal - baseTotal, 2);
+    }
+
+    private void RefreshReceiptRoundTargetPresets()
+    {
+        ReceiptRoundTargetPresets.Clear();
+        ReceiptRoundPracticalPresets.Clear();
+        ReceiptRoundNearestPresets.Clear();
+        ReceiptRoundUpperPresets.Clear();
+
+        var baseTotal = decimal.Round(Math.Max(0m, ReceiptDiscountSubtotal - GetPreviewReceiptDiscountValue()), 2);
+        if (baseTotal <= 0m)
+        {
+            return;
+        }
+
+        var exactTotal = decimal.Round(baseTotal, 2);
+        var lowerWhole = GetPreviousIntegerTarget(baseTotal);
+        var upperWhole = GetNextIntegerTarget(baseTotal);
+        var lowerHalf = GetLowerHalfTarget(baseTotal);
+        var upperHalf = GetUpperHalfTarget(baseTotal);
+        var lowerNinety = GetLowerEndingTarget(baseTotal, 0.90m);
+        var upperNinety = GetUpperEndingTarget(baseTotal, 0.90m);
+        var lowerNinetyFive = GetLowerEndingTarget(baseTotal, 0.95m);
+        var upperNinetyFive = GetUpperEndingTarget(baseTotal, 0.95m);
+        var lowerNinetyNine = GetLowerEndingTarget(baseTotal, 0.99m);
+        var upperNinetyNine = GetUpperEndingTarget(baseTotal, 0.99m);
+        var nextFive = GetNextStepTarget(baseTotal, 5m);
+        var nextTen = GetNextStepTarget(baseTotal, 10m);
+        var nextTwenty = GetNextStepTarget(baseTotal, 20m);
+
+        AddRoundPresetGroup(
+            ReceiptRoundPracticalPresets,
+            [
+                lowerNinety,
+                lowerNinetyFive,
+                exactTotal,
+                upperNinety,
+                upperNinetyFive,
+                lowerNinetyNine,
+                upperNinetyNine
+            ],
+            baseTotal,
+            3);
+
+        AddRoundPresetGroup(
+            ReceiptRoundNearestPresets,
+            [
+                lowerHalf,
+                lowerWhole,
+                lowerNinety,
+                exactTotal,
+                upperNinety,
+                exactTotal,
+                upperHalf,
+                upperWhole,
+                upperNinetyFive
+            ],
+            baseTotal,
+            3);
+
+        AddRoundPresetGroup(
+            ReceiptRoundUpperPresets,
+            [
+                upperHalf,
+                upperNinety,
+                upperNinetyFive,
+                upperNinetyNine,
+                upperWhole,
+                nextFive,
+                nextTen,
+                nextTwenty
+            ],
+            baseTotal,
+            3,
+            onlyAboveBaseTotal: true);
+
+        foreach (var preset in new[]
+        {
+            lowerNinety,
+            lowerNinetyFive,
+            lowerNinetyNine,
+            lowerHalf,
+            lowerWhole,
+            exactTotal,
+            upperNinety,
+            upperNinetyFive,
+            upperNinetyNine,
+            upperHalf,
+            upperWhole,
+            nextFive,
+            nextTen,
+            nextTwenty
+        }
+        .Where(x => x > 0m)
+        .Select(x => decimal.Round(x, 2))
+        .Distinct()
+        .OrderBy(x => Math.Abs(x - baseTotal))
+        .ThenBy(x => x)
+        .Take(9)
+        .OrderBy(x => x))
+        {
+            ReceiptRoundTargetPresets.Add(new ReceiptRoundTargetPresetItem(preset, GetRoundPresetDirectionText(preset, baseTotal)));
+        }
+    }
+
+    private static void AddRoundPresetGroup(
+        ObservableCollection<ReceiptRoundTargetPresetItem> targetCollection,
+        IEnumerable<decimal> candidates,
+        decimal baseTotal,
+        int take,
+        bool onlyAboveBaseTotal = false)
+    {
+        var itemsQuery = candidates
+            .Where(x => x > 0m)
+            .Select(x => decimal.Round(x, 2))
+            .Distinct();
+
+        if (onlyAboveBaseTotal)
+        {
+            itemsQuery = itemsQuery.Where(x => x > baseTotal);
+        }
+
+        var items = onlyAboveBaseTotal
+            ? itemsQuery.OrderBy(x => x).Take(take).ToList()
+            : itemsQuery
+                .OrderBy(x => Math.Abs(x - baseTotal))
+                .ThenBy(x => x)
+                .Take(take)
+                .OrderBy(x => x)
+                .ToList();
+
+        foreach (var item in items)
+        {
+            var subtitle = GetRoundPresetDirectionText(item, baseTotal);
+            targetCollection.Add(new ReceiptRoundTargetPresetItem(item, subtitle));
+        }
+    }
+
+    private static string GetRoundPresetDirectionText(decimal target, decimal baseTotal)
+    {
+        var difference = decimal.Round(Math.Abs(target - baseTotal), 2);
+        if (difference == 0m)
+        {
+            return "Net toplam";
+        }
+
+        var direction = target < baseTotal ? "Aşağı" : "Yukarı";
+        var formattedDifference = difference % 1 == 0
+            ? difference.ToString("0", CultureInfo.CurrentCulture)
+            : difference.ToString("0.00", CultureInfo.CurrentCulture);
+
+        return $"{direction} {formattedDifference} TL";
+    }
+
+    private static decimal GetPreviousIntegerTarget(decimal value)
+    {
+        var floor = decimal.Floor(value);
+        return floor < value ? floor : Math.Max(0m, floor - 1m);
+    }
+
+    private static decimal GetNextIntegerTarget(decimal value)
+    {
+        var ceiling = decimal.Ceiling(value);
+        return ceiling > value ? ceiling : ceiling + 1m;
+    }
+
+    private static decimal GetLowerHalfTarget(decimal value)
+    {
+        var target = decimal.Floor(value) + 0.50m;
+        if (target >= value)
+        {
+            target -= 0.50m;
+        }
+
+        return Math.Max(0m, target);
+    }
+
+    private static decimal GetUpperHalfTarget(decimal value)
+    {
+        var target = decimal.Floor(value) + 0.50m;
+        if (target <= value)
+        {
+            target += 0.50m;
+        }
+
+        return target;
+    }
+
+    private static decimal GetLowerEndingTarget(decimal value, decimal ending)
+    {
+        var target = decimal.Floor(value) + ending;
+        if (target >= value)
+        {
+            target -= 1m;
+        }
+
+        return Math.Max(0m, target);
+    }
+
+    private static decimal GetUpperEndingTarget(decimal value, decimal ending)
+    {
+        var target = decimal.Floor(value) + ending;
+        if (target <= value)
+        {
+            target += 1m;
+        }
+
+        return target;
+    }
+
+    private static decimal GetNextStepTarget(decimal value, decimal step)
+    {
+        var target = decimal.Ceiling(value / step) * step;
+        return target > value ? target : target + step;
     }
 
     private void NotifyReceiptDiscountPreviewChanged()
     {
+        RefreshReceiptRoundTargetPresets();
         OnPropertyChanged(nameof(ReceiptDiscountSubtotal));
         OnPropertyChanged(nameof(ReceiptDiscountValue));
         OnPropertyChanged(nameof(ReceiptDiscountRoundAdjustment));
         OnPropertyChanged(nameof(ReceiptDiscountPreviewTotal));
+        OnPropertyChanged(nameof(ReceiptRoundTargetText));
+        OnPropertyChanged(nameof(ReceiptRoundTargetTextDisplay));
+        OnPropertyChanged(nameof(ReceiptLineDiscountValue));
+        OnPropertyChanged(nameof(ReceiptLineDiscountText));
+        OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
+        OnPropertyChanged(nameof(HasReceiptDiscount));
+        OnPropertyChanged(nameof(ReceiptDiscountValueText));
+        OnPropertyChanged(nameof(ReceiptDiscountDescription));
+        OnPropertyChanged(nameof(HasReceiptRoundAdjustment));
+        OnPropertyChanged(nameof(ReceiptRoundValueText));
+        OnPropertyChanged(nameof(ReceiptRoundModeText));
+    }
+
+    private bool HasDraftReceiptDiscountInput()
+        => !string.IsNullOrWhiteSpace(ReceiptDiscountRateText) || !string.IsNullOrWhiteSpace(ReceiptDiscountAmountText);
+
+    private bool HasDraftReceiptRoundInput()
+        => !string.IsNullOrWhiteSpace(ReceiptRoundTargetText);
+
+    private decimal GetPreviewReceiptDiscountValue()
+        => HasDraftReceiptDiscountInput() ? CalculateReceiptDiscountValue() : CurrentReceipt.DiscountAmount;
+
+    private decimal GetPreviewReceiptRoundAdjustment()
+        => HasDraftReceiptRoundInput() ? CalculateReceiptRoundAdjustment(GetPreviewReceiptDiscountValue()) : CurrentReceipt.RoundAdjustment;
+
+    private string GetCurrentReceiptDiscountInputValue()
+        => ReceiptDiscountInputTarget switch
+        {
+            DiscountInputRateTarget => ReceiptDiscountRateText,
+            DiscountInputRoundTarget => ReceiptRoundTargetText,
+            _ => ReceiptDiscountAmountText
+        };
+
+    private void ClearReceiptDiscountDraftInputs()
+    {
+        _isUpdatingReceiptDiscountInputs = true;
+        ReceiptDiscountRateText = string.Empty;
+        ReceiptDiscountAmountText = string.Empty;
+        ReceiptRoundTargetText = string.Empty;
+        _isUpdatingReceiptDiscountInputs = false;
     }
 
     private void OpenPaymentScreen(string paymentType)
@@ -1549,6 +2178,7 @@ public sealed class PosViewModel : ViewModelBase
         ((RelayCommand)SuspendSaleCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenHeldSalesCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenReceiptHistoryCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)OpenProductActionsModalCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenReceiptDiscountCommand).RaiseCanExecuteChanged();
         ((RelayCommand)ApplyReceiptDiscountCommand).RaiseCanExecuteChanged();
     }
@@ -1560,14 +2190,29 @@ public sealed class PosViewModel : ViewModelBase
             return 0m;
         }
 
-        if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out var currentCultureAmount))
+        var text = value.Trim();
+        var lastComma = text.LastIndexOf(',');
+        var lastDot = text.LastIndexOf('.');
+
+        if (lastComma >= 0 || lastDot >= 0)
         {
-            return currentCultureAmount;
+            var decimalIndex = Math.Max(lastComma, lastDot);
+            var integerPart = new string(text[..decimalIndex].Where(char.IsDigit).ToArray());
+            var fractionalPart = new string(text[(decimalIndex + 1)..].Where(char.IsDigit).ToArray());
+            var normalized = string.IsNullOrEmpty(fractionalPart)
+                ? integerPart
+                : $"{integerPart}.{fractionalPart}";
+
+            if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var normalizedAmount))
+            {
+                return normalizedAmount;
+            }
         }
 
-        if (decimal.TryParse(value.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var invariantAmount))
+        var digitsOnly = new string(text.Where(char.IsDigit).ToArray());
+        if (decimal.TryParse(digitsOnly, NumberStyles.Number, CultureInfo.InvariantCulture, out var digitsOnlyAmount))
         {
-            return invariantAmount;
+            return digitsOnlyAmount;
         }
 
         return 0m;
@@ -1670,8 +2315,10 @@ public enum PosActionScope
     Receipt
 }
 
-public sealed class ReceiptDiscountPresetItem
+public sealed class ReceiptDiscountPresetItem : INotifyPropertyChanged
 {
+    private bool _isSelected;
+
     public ReceiptDiscountPresetItem(string title, ReceiptDiscountPresetKind kind, decimal value)
     {
         Title = title;
@@ -1679,15 +2326,45 @@ public sealed class ReceiptDiscountPresetItem
         Value = value;
     }
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public string Title { get; }
 
     public ReceiptDiscountPresetKind Kind { get; }
 
     public decimal Value { get; }
 
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected == value) return;
+            _isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
+
     public string ValueText => Kind == ReceiptDiscountPresetKind.Percentage
         ? $"%{Value:0.##}"
         : $"{Value:0.00} TL";
+}
+
+public sealed class ReceiptRoundTargetPresetItem
+{
+    public ReceiptRoundTargetPresetItem(decimal value, string subtitle)
+    {
+        Value = value;
+        Subtitle = subtitle;
+    }
+
+    public decimal Value { get; }
+
+    public string Subtitle { get; }
+
+    public string Title => Value % 1 == 0
+        ? Value.ToString("0", CultureInfo.CurrentCulture)
+        : Value.ToString("0.00", CultureInfo.CurrentCulture);
 }
 
 public enum ReceiptDiscountPresetKind

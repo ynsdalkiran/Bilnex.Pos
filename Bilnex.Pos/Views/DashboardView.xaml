@@ -149,7 +149,7 @@
                 Grid.Column="6"
                 Command="{Binding DataContext.PriceChangeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                 Style="{StaticResource MetroMenuTileStyle}"
-                Background="#B146C2">
+                Background="{DynamicResource MetroTilePurpleBrush}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -347,22 +347,24 @@
                     Grid.Column="0"
                     Grid.ColumnSpan="7"
                     Padding="18"
-                    Background="#101B2E"
-                    CornerRadius="4">
+                    Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrushDark}"
+                    BorderThickness="1"
+                    CornerRadius="16">
                 <DockPanel LastChildFill="False">
                     <StackPanel DockPanel.Dock="Left">
                         <TextBlock Text="Hızlı Menü Özeti"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    FontSize="16"
                                    FontWeight="SemiBold" />
                         <TextBlock Margin="0,6,0,0"
                                    Text="Microsoft tile mantığına uygun hızlı erişim düzeni."
-                                   Foreground="#C4D2E4"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    FontSize="13" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Right"
                                Text="8 MODÜL"
-                               Foreground="#7DD3FC"
+                               Foreground="{DynamicResource PrimaryBrush}"
                                FontSize="22"
                                FontWeight="Bold"
                                VerticalAlignment="Center" />

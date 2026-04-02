@@ -4,161 +4,972 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             d:DesignHeight="760"
-             d:DesignWidth="1120">
-    <Border Width="1120"
-            MaxHeight="760"
-            Padding="28"
-            Background="{DynamicResource ShellContentBackgroundBrush}"
-            BorderBrush="{StaticResource BorderBrushDark}"
-            BorderThickness="1"
-            CornerRadius="26"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="18" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="18" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+             Loaded="UserControl_Loaded"
+             d:DesignWidth="980"
+             d:DesignHeight="680">
 
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Left">
-                    <TextBlock Text="Fi&#x015F; &#x0130;ndirimi"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               FontSize="30"
-                               FontWeight="Bold" />
-                    <TextBlock Margin="0,6,0,0"
-                               Text="Y&#x00FC;zde, tutar, yuvarlama ve haz&#x0131;r kampanyalar&#x0131; tek ekrandan uygulay&#x0131;n."
-                               Foreground="{StaticResource TextMutedBrush}"
-                               FontSize="15" />
-                </StackPanel>
+    <UserControl.Resources>
 
-                <Button DockPanel.Dock="Right"
-                        Width="138"
-                        Height="44"
-                        Command="{Binding CloseReceiptDiscountCommand}"
-                        Style="{StaticResource DangerActionButtonStyle}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE711;"
-                                   Margin="0,0,8,0"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   VerticalAlignment="Center" />
-                        <TextBlock Text="Vazge&#x00E7;"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-            </DockPanel>
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  BASE BUTTON  –  shared template for the whole dialog      -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <Style x:Key="ReceiptDialogBaseButtonStyle" TargetType="Button">
+            <Setter Property="Foreground"      Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background"      Value="{DynamicResource WindowBackgroundBrush}" />
+            <Setter Property="BorderBrush"     Value="{DynamicResource BorderBrushDark}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding"         Value="0" />
+            <Setter Property="FontSize"        Value="14" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+            <Setter Property="Cursor"          Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="14"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                <Setter TargetName="Root" Property="Opacity"     Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="RenderTransformOrigin" Value="0.5,0.5" />
+                                <Setter TargetName="Root" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.40" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="14" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="14" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="14" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+        <!-- ── Tab bar buttons (Fiş İndirimi / Hazır Kartlar / Yuvarlama) -->
+        <Style x:Key="ReceiptDialogTabButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"   Value="46" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding"  Value="12,0" />
+        </Style>
 
-                <Border Padding="16"
-                        Background="{DynamicResource WindowBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="18">
-                    <StackPanel>
-                        <TextBlock Text="Ara Toplam"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="13" />
-                        <TextBlock Margin="0,6,0,0"
-                                   Text="{Binding ReceiptDiscountSubtotal, StringFormat={}{0:0.00} TL}"
+        <!-- ── Segmented mode buttons (Tutar Girişi / Yüzde Girişi) ── -->
+        <Style x:Key="ReceiptDialogSegmentButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"   Value="52" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Padding"  Value="16,0" />
+        </Style>
+
+        <!-- ── Preset discount cards (Hazır Kartlar tab) ─────────────── -->
+        <Style x:Key="ReceiptDialogPresetCardStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="MinHeight" Value="56" />
+            <Setter Property="FontSize"  Value="14" />
+            <Setter Property="Padding"   Value="10,10" />
+        </Style>
+
+        <!-- ── Round target preset buttons (Yuvarlama tab) ─────────── -->
+        <Style x:Key="ReceiptDialogRoundPresetButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="FontSize"  Value="12" />
+            <Setter Property="Padding"   Value="6,6" />
+        </Style>
+
+        <!-- ── Numeric keypad digits ─────────────────────────────────── -->
+        <Style x:Key="ReceiptDialogKeypadButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="FontSize"   Value="22" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding"    Value="0" />
+        </Style>
+
+        <!-- ── Primary / success action (Uygula) ────────────────────── -->
+        <Style x:Key="ReceiptDialogSuccessButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"      Value="52" />
+            <Setter Property="FontSize"    Value="16" />
+            <Setter Property="FontWeight"  Value="Bold" />
+            <Setter Property="Foreground"  Value="White" />
+            <Setter Property="Background"  Value="{DynamicResource MetroTileGreenBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource MetroTileGreenBrush}" />
+        </Style>
+
+        <!-- ── Danger / close button (Vazgeç) ───────────────────────── -->
+        <Style x:Key="ReceiptDialogDangerButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"      Value="46" />
+            <Setter Property="FontSize"    Value="14" />
+            <Setter Property="Foreground"  Value="White" />
+            <Setter Property="Background"  Value="{DynamicResource ShellExitBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ShellExitBackgroundBrush}" />
+            <Setter Property="Padding"     Value="20,0" />
+        </Style>
+
+        <!-- ── Secondary / neutral action (Temizle, Sil keypad) ─────── -->
+        <Style x:Key="ReceiptDialogSecondaryButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"   Value="52" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding"  Value="16,0" />
+        </Style>
+
+        <!-- ── Card action button (Düzenle in summary cards) ────────── -->
+        <Style x:Key="ReceiptDialogCardActionButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"   Value="40" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding"  Value="14,0" />
+        </Style>
+
+        <!-- ── Card danger button (Sil in summary cards) ────────────── -->
+        <Style x:Key="ReceiptDialogCardDangerButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource ReceiptDialogBaseButtonStyle}">
+            <Setter Property="Height"      Value="40" />
+            <Setter Property="FontSize"    Value="12" />
+            <Setter Property="Padding"     Value="14,0" />
+            <Setter Property="Foreground"  Value="White" />
+            <Setter Property="Background"  Value="{DynamicResource ShellExitBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ShellExitBackgroundBrush}" />
+        </Style>
+
+    </UserControl.Resources>
+
+    <!--
+        DIALOG ROOT
+        980 × 680 : fits 1024×768 POS terminal with margin for chrome + taskbar
+        For 1920×1080 desktop  → centre-aligned, breathing room around dialog
+        For tablet (< 900 px)  → host container should scale or stack vertically
+    -->
+    <Grid HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Width="980"
+          Height="648"
+          UseLayoutRounding="True"
+          SnapsToDevicePixels="True">
+
+        <Border Padding="16"
+                Background="{DynamicResource ShellContentBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrushDark}"
+                BorderThickness="1"
+                CornerRadius="24">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />   <!-- Header            -->
+                    <RowDefinition Height="14" />     <!-- Header–body gap   -->
+                    <RowDefinition Height="*" />      <!-- Body              -->
+                </Grid.RowDefinitions>
+
+                <!-- ═══════════════════════════════════════════════════ -->
+                <!-- HEADER                                              -->
+                <!-- ═══════════════════════════════════════════════════ -->
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Left"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Fi&#x015F; &#x0130;ndirimi"
                                    Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontSize="26"
+                                   FontSize="22"
                                    FontWeight="Bold" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2"
-                        Padding="16"
-                        Background="{DynamicResource WindowBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="18">
-                    <StackPanel>
-                        <TextBlock Text="&#x0130;ndirim"
+                        <TextBlock Margin="0,4,0,0"
+                                   Text="Fi&#x015F; indirimi, yuvarlama ve standart kampanyalar&#x0131; tek ekrandan y&#x00F6;netin."
                                    Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="13" />
-                        <TextBlock Margin="0,6,0,0"
-                                   Text="{Binding ReceiptDiscountValue, StringFormat={}{0:0.00} TL}"
-                                   Foreground="{DynamicResource MetroTileOrangeBrush}"
-                                   FontSize="26"
-                                   FontWeight="Bold" />
+                                   FontSize="12" />
                     </StackPanel>
-                </Border>
 
-                <Border Grid.Column="4"
-                        Padding="16"
-                        Background="{DynamicResource WindowBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="18">
-                    <StackPanel>
-                        <TextBlock Text="Yuvarlama"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="13" />
-                        <TextBlock Margin="0,6,0,0"
-                                   Text="{Binding ReceiptDiscountRoundAdjustment, StringFormat={}{0:0.00} TL}"
-                                   Foreground="{DynamicResource MetroTilePurpleBrush}"
-                                   FontSize="26"
-                                   FontWeight="Bold" />
-                    </StackPanel>
-                </Border>
+                    <Button DockPanel.Dock="Right"
+                            MinWidth="120"
+                            Command="{Binding CloseReceiptDiscountCommand}"
+                            Style="{StaticResource ReceiptDialogDangerButtonStyle}">
+                        <TextBlock Text="Vazge&#x00E7;" />
+                    </Button>
+                </DockPanel>
 
-                <Border Grid.Column="6"
-                        Padding="16"
-                        Background="{DynamicResource WindowBackgroundBrush}"
-                        BorderBrush="{DynamicResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="18">
-                    <StackPanel>
-                        <TextBlock Text="Yeni Toplam"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="13" />
-                        <TextBlock Margin="0,6,0,0"
-                                   Text="{Binding ReceiptDiscountPreviewTotal, StringFormat={}{0:0.00} TL}"
-                                   Foreground="{DynamicResource PrimaryBrush}"
-                                   FontSize="28"
-                                   FontWeight="Bold" />
-                    </StackPanel>
-                </Border>
-            </Grid>
+                <!-- ═══════════════════════════════════════════════════ -->
+                <!-- BODY  –  left summary  |  right editor             -->
+                <!-- ═══════════════════════════════════════════════════ -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <!--
+                            Left  = 306 px  (≈ 32 % of 944 px body width)
+                            Gap   =  16 px
+                            Right = *       (≈ 68 %, ~622 px)
+                        -->
+                        <ColumnDefinition Width="306" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-            <Grid Grid.Row="4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.45*" />
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="0.95*" />
-                </Grid.ColumnDefinitions>
-
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled"
-                              CanContentScroll="False">
-                    <Grid Margin="0,0,8,0">
+                    <!-- ─────────────────────────────────────────────── -->
+                    <!-- LEFT  –  SUMMARY PANEL                         -->
+                    <!--                                                 -->
+                    <!--  Level 1 (strongest)  : Totals card            -->
+                    <!--  Level 2 (medium)      : Applied-sources cards  -->
+                    <!--  Level 3 (lightest)    : Explanatory info card  -->
+                    <!-- ─────────────────────────────────────────────── -->
+                    <Grid x:Name="LeftPanel">
+                        <!--
+                            Row heights are fixed so that the summary
+                            panel never shifts when card content updates.
+                            Body height = ~548 px total.
+                            82+8+62+8+102+8+116+8 = 394 fixed → Round = ~154 px
+                        -->
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="82" />    <!-- Totals          -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="62" />    <!-- Applied info     -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="102" />   <!-- Line discount   -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="116" />   <!-- Receipt discount -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="*" />     <!-- Round adj.      -->
                         </Grid.RowDefinitions>
 
-                        <Border Padding="18"
+                        <!-- 1 ▸ TOTALS CARD  (strongest emphasis) ──── -->
+                        <Border Padding="16,14"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="Ara Toplam"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11" />
+                                    <TextBlock Margin="0,5,0,0"
+                                               Text="{Binding ReceiptDiscountSubtotal, StringFormat={}{0:0.00} TL}"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="20"
+                                               FontWeight="Bold" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2"
+                                            HorizontalAlignment="Right">
+                                    <TextBlock Text="Yeni Toplam"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               HorizontalAlignment="Right" />
+                                    <TextBlock Margin="0,5,0,0"
+                                               Text="{Binding ReceiptDiscountPreviewTotal, StringFormat={}{0:0.00} TL}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Right" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- 2 ▸ APPLIED INFO CARD  (lightest / explanatory) -->
+                        <Border Grid.Row="2"
+                                Padding="14,12"
                                 Background="{DynamicResource ShellUserPanelBackgroundBrush}"
                                 BorderBrush="{StaticResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="16">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Uygulanan &#x0130;ndirimler"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Text="Sat&#x0131;r indirimi, fi&#x015F; indirimi ve yuvarlama burada g&#x00F6;r&#x00FC;n&#x00FC;r."
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 3 ▸ LINE DISCOUNT CARD  (info only – no edit) -->
+                        <Border Grid.Row="4"
+                                Padding="14,12"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="16">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="5" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="10" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Sat&#x0131;rlardan Gelen &#x0130;ndirim"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+
+                                <Border Grid.Column="1"
+                                        Padding="10,5"
+                                        Background="{DynamicResource ShellContentBackgroundBrush}"
+                                        CornerRadius="12">
+                                    <TextBlock Text="{Binding ReceiptLineDiscountText}"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="14"
+                                               FontWeight="Bold" />
+                                </Border>
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.ColumnSpan="2"
+                                           Text="{Binding ReceiptLineDiscountDescription}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap" />
+
+                                <Grid Grid.Row="4"
+                                      Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Padding="8,4"
+                                            Background="{DynamicResource ShellContentBackgroundBrush}"
+                                            CornerRadius="10">
+                                        <TextBlock Text="Otomatik"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="10"
+                                                   FontWeight="SemiBold" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1"
+                                               Margin="8,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Text="&#x00DC;r&#x00FC;n i&#x015F;lemleri ekran&#x0131;ndan y&#x00F6;netilir."
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="10" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- 4 ▸ RECEIPT DISCOUNT APPLIED CARD ───────── -->
+                        <Border Grid.Row="6"
+                                Padding="14,12"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="16">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="5" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Fi&#x015F; &#x0130;ndirimi"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+
+                                <Border Grid.Column="1"
+                                        Padding="10,5"
+                                        Background="#FFF8E8"
+                                        CornerRadius="12">
+                                    <TextBlock Text="{Binding ReceiptDiscountValueText}"
+                                               Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                               FontSize="14"
+                                               FontWeight="Bold" />
+                                </Border>
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.ColumnSpan="2"
+                                           Text="{Binding ReceiptDiscountDescription}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap" />
+
+                                <StackPanel Grid.Row="4"
+                                            Grid.ColumnSpan="2"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Right">
+                                    <Button Command="{Binding EditReceiptDiscountSourceCommand}"
+                                            CommandParameter="discount"
+                                            Style="{StaticResource ReceiptDialogCardActionButtonStyle}">
+                                        <TextBlock Text="D&#x00FC;zenle" />
+                                    </Button>
+                                    <Rectangle Width="8" Fill="Transparent" />
+                                    <Button Command="{Binding RemoveReceiptDiscountSourceCommand}"
+                                            CommandParameter="discount"
+                                            Style="{StaticResource ReceiptDialogCardDangerButtonStyle}">
+                                        <TextBlock Text="Sil" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- 5 ▸ ROUND ADJUSTMENT APPLIED CARD ───────── -->
+                        <Border Grid.Row="8"
+                                Padding="14,12"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="16">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="5" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Yuvarlama"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+
+                                <Border Grid.Column="1"
+                                        Padding="10,5"
+                                        Background="#F4EEFB"
+                                        CornerRadius="12">
+                                    <TextBlock Text="{Binding ReceiptRoundValueText}"
+                                               Foreground="{DynamicResource MetroTilePurpleBrush}"
+                                               FontSize="14"
+                                               FontWeight="Bold" />
+                                </Border>
+
+                                <TextBlock Grid.Row="2"
+                                           Grid.ColumnSpan="2"
+                                           Text="{Binding ReceiptRoundModeText}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap" />
+
+                                <StackPanel Grid.Row="4"
+                                            Grid.ColumnSpan="2"
+                                            Orientation="Horizontal"
+                                            HorizontalAlignment="Right">
+                                    <Button Command="{Binding EditReceiptDiscountSourceCommand}"
+                                            CommandParameter="round"
+                                            Style="{StaticResource ReceiptDialogCardActionButtonStyle}">
+                                        <TextBlock Text="D&#x00FC;zenle" />
+                                    </Button>
+                                    <Rectangle Width="8" Fill="Transparent" />
+                                    <Button Command="{Binding RemoveReceiptDiscountSourceCommand}"
+                                            CommandParameter="round"
+                                            Style="{StaticResource ReceiptDialogCardDangerButtonStyle}">
+                                        <TextBlock Text="Sil" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <!-- End LeftPanel -->
+
+                    <!-- ─────────────────────────────────────────────── -->
+                    <!-- RIGHT  –  EDITOR PANEL                         -->
+                    <!--                                                 -->
+                    <!--  Row 0  Tabs            48 px                  -->
+                    <!--  Row 2  Tab content    136 px  FIXED – no jump -->
+                    <!--  Row 4  Input display   68 px                  -->
+                    <!--  Row 6  Keypad           *  (~210 px)          -->
+                    <!--  Row 8  Action bar       52 px                 -->
+                    <!-- ─────────────────────────────────────────────── -->
+                    <Grid Grid.Column="2"
+                          x:Name="RightPanel">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="54" />    <!-- Tab bar        -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="136" />   <!-- Tab content    -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="68" />    <!-- Input display  -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="*" />     <!-- Keypad         -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="52" />    <!-- Action bar     -->
+                        </Grid.RowDefinitions>
+
+                        <!-- ══ TAB BAR ═══════════════════════════════ -->
+                        <Border Padding="4"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <UniformGrid Rows="1" Columns="3">
+
+                                <!-- Tab: Fiş İndirimi (blue when active) -->
+                                <Button x:Name="DiscountModeButton"
+                                        Command="{Binding SelectReceiptDiscountEditorModeCommand}"
+                                        CommandParameter="discount">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ReceiptDialogTabButtonStyle}">
+                                            <Setter Property="Margin" Value="0,0,4,0" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsReceiptDiscountModeSelected}" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource MetroTileBlueBrush}" />
+                                                    <Setter Property="Foreground"  Value="White" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="Fi&#x015F; &#x0130;ndirimi" />
+                                </Button>
+
+                                <!-- Tab: Hazır Kartlar (orange when active) -->
+                                <Button x:Name="PresetModeButton"
+                                        Command="{Binding SelectReceiptDiscountEditorModeCommand}"
+                                        CommandParameter="preset">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ReceiptDialogTabButtonStyle}">
+                                            <Setter Property="Margin" Value="0,0,4,0" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsReceiptPresetModeSelected}" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                    <Setter Property="Foreground"  Value="White" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="Haz&#x0131;r Kartlar" />
+                                </Button>
+
+                                <!-- Tab: Yuvarlama (purple when active) -->
+                                <Button x:Name="RoundModeButton"
+                                        Command="{Binding SelectReceiptDiscountEditorModeCommand}"
+                                        CommandParameter="round">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ReceiptDialogTabButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsReceiptRoundModeSelected}" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource MetroTilePurpleBrush}" />
+                                                    <Setter Property="Foreground"  Value="White" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTilePurpleBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="Yuvarlama" />
+                                </Button>
+
+                            </UniformGrid>
+                        </Border>
+
+                        <!-- ══ TAB CONTENT: Fiş İndirimi ════════════ -->
+                        <!--
+                            FIXED HEIGHT ROW prevents layout jumps between tabs.
+                            All 3 tab panels live in the same Grid.Row="2" and
+                            use Visibility to show/hide — no re-layout occurs.
+                        -->
+                        <Border Grid.Row="2"
+                                Padding="14,12"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsReceiptDiscountModeSelected}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />   <!-- Active-mode context bar -->
+                                    <RowDefinition Height="10" />
+                                    <RowDefinition Height="52" />  <!-- Segment control         -->
+                                </Grid.RowDefinitions>
+
+                                <!-- Context bar: shows which input mode is live -->
+                                <Border Background="{DynamicResource ShellContentBackgroundBrush}"
+                                        CornerRadius="14"
+                                        Padding="14,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Giri&#x015F; modunu se&#x00E7;in, rakamlar&#x0131; tu&#x015F; tak&#x0131;m&#x0131;yla girin."
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="12"
+                                                   VerticalAlignment="Center" />
+                                        <!-- Aktif mod chip'i: renge göre "amount" → mavi, "rate" → turuncu -->
+                                        <Border Grid.Column="1"
+                                                Padding="12,7"
+                                                CornerRadius="20">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="rate">
+                                                            <Setter Property="Background" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <!-- Gösterge noktası -->
+                                                <Ellipse Width="7"
+                                                         Height="7"
+                                                         Fill="White"
+                                                         Opacity="0.75"
+                                                         VerticalAlignment="Center"
+                                                         Margin="0,0,6,0" />
+                                                <TextBlock Text="{Binding ReceiptDiscountInputTargetText}"
+                                                           Foreground="White"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Segment: Tutar Girişi | Yüzde Girişi -->
+                                <!--
+                                    Active state driven by ReceiptDiscountInputTarget string.
+                                    Both buttons use PrimaryBrush fill when selected,
+                                    giving the cashier an unambiguous "which mode am I in?" cue.
+                                -->
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button x:Name="AmountInputButton"
+                                            Command="{Binding SetReceiptDiscountInputTargetCommand}"
+                                            CommandParameter="amount">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource ReceiptDialogSegmentButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="amount">
+                                                        <Setter Property="Background"  Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Foreground"  Value="White" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <TextBlock Text="Tutar Giri&#x015F;i" />
+                                    </Button>
+
+                                    <Button x:Name="RateInputButton"
+                                            Grid.Column="2"
+                                            Command="{Binding SetReceiptDiscountInputTargetCommand}"
+                                            CommandParameter="rate">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource ReceiptDialogSegmentButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="rate">
+                                                        <Setter Property="Background"  Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Foreground"  Value="White" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <TextBlock Text="Y&#x00FC;zde Giri&#x015F;i" />
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- ══ TAB CONTENT: Hazır Kartlar ════════════ -->
+                        <Border Grid.Row="2"
+                                Padding="14"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsReceiptPresetModeSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <!--
+                                Dinamik, dokunmatik kaydırmalı preset grid.
+                                ScrollViewer: görünmez scrollbar, PanningMode ile
+                                parmak/fare sürükleme desteği.
+                                ItemsControl + UniformGrid(Columns=2): item sayısından
+                                bağımsız çalışır, 4'ten fazlası yukarı kaydırılır.
+                            -->
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          PanningMode="VerticalOnly">
+                                <ItemsControl ItemsSource="{Binding ReceiptDiscountPresets}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Margin="0,0,6,6"
+                                                    Command="{Binding DataContext.SelectReceiptDiscountPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource ReceiptDialogPresetCardStyle}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Background"  Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                                <Setter Property="Foreground"  Value="White" />
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}"
+                                                               HorizontalAlignment="Center"
+                                                               FontWeight="SemiBold"
+                                                               FontSize="14"
+                                                               TextWrapping="Wrap"
+                                                               TextAlignment="Center" />
+                                                    <TextBlock Text="{Binding ValueText}"
+                                                               HorizontalAlignment="Center"
+                                                               FontSize="12"
+                                                               Margin="0,3,0,0"
+                                                               Foreground="{StaticResource TextMutedBrush}"
+                                                               TextWrapping="Wrap"
+                                                               TextAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                        </Border>
+
+                        <!-- ══ TAB CONTENT: Yuvarlama ═════════════════ -->
+                        <Border Grid.Row="2"
+                                Padding="12,10"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsReceiptRoundModeSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />   <!-- Helper label -->
+                                    <RowDefinition Height="8" />
+                                    <RowDefinition Height="*" />      <!-- Preset groups -->
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Fi&#x015F;in ula&#x015F;aca&#x011F;&#x0131; hedef toplam&#x0131; se&#x00E7;in veya yaz&#x0131;n"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="12" />
+
+                                <!-- 3-column preset groups with ScrollViewer per column -->
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="6" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="6" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Group: Kasada Hızlı -->
+                                    <Border Padding="8"
+                                            Background="{DynamicResource ShellContentBackgroundBrush}"
+                                            CornerRadius="14">
+                                        <!--
+                                            Grid yerine StackPanel kullanmak ScrollViewer'ı
+                                            sonsuz yükseklikte ölçer → kaydırma çalışmaz.
+                                            Grid Row="*" ScrollViewer'ı kırpar → kaydırma aktif.
+                                        -->
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="Kasada H&#x0131;zl&#x0131;"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center" />
+                                            <ScrollViewer Grid.Row="1"
+                                                          Margin="0,6,0,0"
+                                                          VerticalScrollBarVisibility="Hidden"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          PanningMode="VerticalOnly">
+                                                <ItemsControl ItemsSource="{Binding ReceiptRoundPracticalPresets}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Margin="0,0,0,4"
+                                                                    Command="{Binding DataContext.SelectReceiptRoundTargetPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource ReceiptDialogRoundPresetButtonStyle}">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Title}"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontWeight="SemiBold" />
+                                                                    <TextBlock Text="{Binding Subtitle}"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontSize="11"
+                                                                               Foreground="{StaticResource TextMutedBrush}" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Group: En Yakın -->
+                                    <Border Grid.Column="2"
+                                            Padding="8"
+                                            Background="{DynamicResource ShellContentBackgroundBrush}"
+                                            CornerRadius="14">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="En Yak&#x0131;n"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center" />
+                                            <ScrollViewer Grid.Row="1"
+                                                          Margin="0,6,0,0"
+                                                          VerticalScrollBarVisibility="Hidden"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          PanningMode="VerticalOnly">
+                                                <ItemsControl ItemsSource="{Binding ReceiptRoundNearestPresets}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Margin="0,0,0,4"
+                                                                    Command="{Binding DataContext.SelectReceiptRoundTargetPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource ReceiptDialogRoundPresetButtonStyle}">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Title}"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontWeight="SemiBold" />
+                                                                    <TextBlock Text="{Binding Subtitle}"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontSize="11"
+                                                                               Foreground="{StaticResource TextMutedBrush}" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Group: Üste Taşı -->
+                                    <Border Grid.Column="4"
+                                            Padding="8"
+                                            Background="{DynamicResource ShellContentBackgroundBrush}"
+                                            CornerRadius="14">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="&#x00DC;ste Ta&#x015F;&#x0131;"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center" />
+                                            <ScrollViewer Grid.Row="1"
+                                                          Margin="0,6,0,0"
+                                                          VerticalScrollBarVisibility="Hidden"
+                                                          HorizontalScrollBarVisibility="Disabled"
+                                                          PanningMode="VerticalOnly">
+                                                <ItemsControl ItemsSource="{Binding ReceiptRoundUpperPresets}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Button Margin="0,0,0,4"
+                                                                    Command="{Binding DataContext.SelectReceiptRoundTargetPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource ReceiptDialogRoundPresetButtonStyle}">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Title}"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontWeight="SemiBold" />
+                                                                    <TextBlock Text="{Binding Subtitle}"
+                                                                               HorizontalAlignment="Center"
+                                                                               FontSize="11"
+                                                                               Foreground="{StaticResource TextMutedBrush}" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ScrollViewer>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- ══ INPUT DISPLAY CARD ════════════════════ -->
+                        <!--
+                            Shows the currently entered value.
+                            Only the relevant TextBlock is visible based on
+                            ReceiptDiscountInputTarget ("amount" / "rate" / "round").
+                            The round-mode description badge sits on the right.
+                        -->
+                        <Border Grid.Row="4"
+                                x:Name="InputSummaryCard"
+                                Padding="16,10"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
                                 BorderThickness="1"
                                 CornerRadius="18">
                             <Grid>
@@ -167,553 +978,210 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel>
-                                    <TextBlock Text="Haz&#x0131;r &#x0130;ndirimler"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="19"
-                                               FontWeight="SemiBold" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Text="&#x00D6;zel m&#x00FC;&#x015F;teri, personel ve kampanya indirimlerini tek dokunu&#x015F;la uygula."
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ReceiptDiscountInputTargetText}"
                                                Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="13"
-                                               TextWrapping="Wrap" />
-                                </StackPanel>
+                                               FontSize="12" />
 
-                                <Border Grid.Column="1"
-                                        Padding="12,8"
-                                        Background="{DynamicResource WindowBackgroundBrush}"
-                                        BorderBrush="{DynamicResource BorderBrushDark}"
-                                        BorderThickness="1"
-                                        CornerRadius="14"
-                                        VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding ReceiptDiscountLabel}"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="13"
-                                               FontWeight="SemiBold" />
-                                </Border>
-                            </Grid>
-                        </Border>
-
-                        <ItemsControl Grid.Row="2"
-                                      ItemsSource="{Binding ReceiptDiscountPresets}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Columns="2" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Margin="0,0,12,12"
-                                            MinHeight="74"
-                                            Padding="16,14"
-                                            Command="{Binding DataContext.SelectReceiptDiscountPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
-                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-                                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
-                                                <Setter Property="BorderThickness" Value="1" />
-                                            </Style>
-                                        </Button.Style>
-                                        <DockPanel LastChildFill="True">
-                                            <Border DockPanel.Dock="Right"
-                                                    Padding="10,6"
-                                                    Background="{DynamicResource SurfaceAltBrush}"
-                                                    CornerRadius="12"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding ValueText}"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                                           FontSize="12"
-                                                           FontWeight="SemiBold" />
-                                            </Border>
-
-                                            <StackPanel Margin="0,0,12,0">
-                                                <TextBlock Text="{Binding Title}"
-                                                           FontSize="15"
-                                                           FontWeight="SemiBold"
-                                                           TextWrapping="Wrap" />
-                                                <TextBlock Margin="0,5,0,0"
-                                                           Text="Standart kampanya"
-                                                           Foreground="{StaticResource TextMutedBrush}"
-                                                           FontSize="12" />
-                                            </StackPanel>
-                                        </DockPanel>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Grid Grid.Row="4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="14" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Padding="18"
-                                    Background="{DynamicResource ShellUserPanelBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderBrushDark}"
-                                    BorderThickness="1"
-                                    CornerRadius="18">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="10" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
-                                    <Button Height="40"
-                                            Command="{Binding SetReceiptDiscountInputTargetCommand}"
-                                            CommandParameter="rate">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
-                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-                                                <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
-                                                <Setter Property="BorderThickness" Value="1" />
+                                    <!-- Amount value (hidden when rate or round is active) -->
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding ReceiptDiscountAmountText}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="24"
+                                               FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="rate">
-                                                        <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="round">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </Button.Style>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="&#xE1D0;"
-                                                       Margin="0,0,8,0"
-                                                       FontFamily="Segoe MDL2 Assets"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Text="Y&#x00FC;zde &#x0130;ndirimi"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
+                                        </TextBlock.Style>
+                                    </TextBlock>
 
-                                    <Grid Grid.Row="2">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="8" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <TextBlock Text="Fi&#x015F; toplam&#x0131;na y&#x00FC;zde bazl&#x0131; indirim uygular."
-                                                   Foreground="{StaticResource TextMutedBrush}"
-                                                   FontSize="12"
-                                                   TextWrapping="Wrap" />
-
-                                        <TextBox Grid.Row="2"
-                                                 Height="54"
-                                                 Padding="14,10"
-                                                 Text="{Binding ReceiptDiscountRateText, UpdateSourceTrigger=PropertyChanged}"
-                                                 FontSize="24"
-                                                 FontWeight="SemiBold"
-                                                 Background="{DynamicResource WindowBackgroundBrush}"
-                                                 BorderBrush="{DynamicResource BorderBrushDark}"
-                                                 BorderThickness="1"
-                                                 VerticalContentAlignment="Center" />
-                                    </Grid>
-                                </Grid>
-                            </Border>
-
-                            <Border Grid.Column="2"
-                                    Padding="18"
-                                    Background="{DynamicResource ShellUserPanelBackgroundBrush}"
-                                    BorderBrush="{StaticResource BorderBrushDark}"
-                                    BorderThickness="1"
-                                    CornerRadius="18">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="10" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
-                                    <Button Height="40"
-                                            Command="{Binding SetReceiptDiscountInputTargetCommand}"
-                                            CommandParameter="amount">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
-                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-                                                <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
-                                                <Setter Property="BorderThickness" Value="1" />
+                                    <!-- Rate value (shown only for "rate" target) -->
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding ReceiptDiscountRateText}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="24"
+                                               FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="amount">
-                                                        <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                    <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="rate">
+                                                        <Setter Property="Visibility" Value="Visible" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </Button.Style>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="&#xE1D1;"
-                                                       Margin="0,0,8,0"
-                                                       FontFamily="Segoe MDL2 Assets"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Text="Tutar &#x0130;ndirimi"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
+                                        </TextBlock.Style>
+                                    </TextBlock>
 
-                                    <Grid Grid.Row="2">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="8" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <TextBlock Text="Fi&#x015F;ten do&#x011F;rudan TL bazl&#x0131; indirim d&#x00FC;&#x015F;er."
-                                                   Foreground="{StaticResource TextMutedBrush}"
-                                                   FontSize="12"
-                                                   TextWrapping="Wrap" />
-
-                                        <TextBox Grid.Row="2"
-                                                 Height="54"
-                                                 Padding="14,10"
-                                                 Text="{Binding ReceiptDiscountAmountText, UpdateSourceTrigger=PropertyChanged}"
-                                                 FontSize="24"
-                                                 FontWeight="SemiBold"
-                                                 Background="{DynamicResource WindowBackgroundBrush}"
-                                                 BorderBrush="{DynamicResource BorderBrushDark}"
-                                                 BorderThickness="1"
-                                                 VerticalContentAlignment="Center" />
-                                    </Grid>
-                                </Grid>
-                            </Border>
-                        </Grid>
-
-                        <Border Grid.Row="6"
-                                Padding="18"
-                                Background="{DynamicResource ShellUserPanelBackgroundBrush}"
-                                BorderBrush="{StaticResource BorderBrushDark}"
-                                BorderThickness="1"
-                                CornerRadius="18">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="12" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <StackPanel>
-                                    <TextBlock Text="Yuvarlama"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="19"
-                                               FontWeight="SemiBold" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Text="Toplam&#x0131; kasada kolay tahsil edilecek hale getirmek i&#x00E7;in fi&#x015F;i yukar&#x0131; veya a&#x015F;a&#x011F;&#x0131; yuvarla."
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="13"
-                                               TextWrapping="Wrap" />
+                                    <!-- Round target value (shown only for "round" target) -->
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding ReceiptRoundTargetText}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="24"
+                                               FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="round">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
 
-                                <Grid Grid.Row="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="12" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="12" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <Button Grid.Column="0"
-                                            Height="48"
-                                            Command="{Binding SetReceiptRoundModeCommand}"
-                                            CommandParameter="Down">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
-                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-                                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
-                                                <Setter Property="BorderThickness" Value="1" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ReceiptRoundMode}" Value="Down">
-                                                        <Setter Property="Background" Value="{DynamicResource MetroTilePurpleBrush}" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MetroTilePurpleBrush}" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="&#xE74B;"
-                                                       Margin="0,0,8,0"
-                                                       FontFamily="Segoe MDL2 Assets"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Text="A&#x015F;a&#x011F;&#x0131; Yuvarla"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Grid.Column="2"
-                                            Height="48"
-                                            Command="{Binding SetReceiptRoundModeCommand}"
-                                            CommandParameter="None">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
-                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-                                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
-                                                <Setter Property="BorderThickness" Value="1" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ReceiptRoundMode}" Value="None">
-                                                        <Setter Property="Background" Value="{DynamicResource MetroTileSlateBrush}" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MetroTileSlateBrush}" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="&#xE73E;"
-                                                       Margin="0,0,8,0"
-                                                       FontFamily="Segoe MDL2 Assets"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Text="Yuvarlama Yok"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Grid.Column="4"
-                                            Height="48"
-                                            Command="{Binding SetReceiptRoundModeCommand}"
-                                            CommandParameter="Up">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
-                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
-                                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
-                                                <Setter Property="BorderThickness" Value="1" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ReceiptRoundMode}" Value="Up">
-                                                        <Setter Property="Background" Value="{DynamicResource MetroTilePurpleBrush}" />
-                                                        <Setter Property="Foreground" Value="White" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource MetroTilePurpleBrush}" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="&#xE74A;"
-                                                       Margin="0,0,8,0"
-                                                       FontFamily="Segoe MDL2 Assets"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Text="Yukar&#x0131; Yuvarla"
-                                                       VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </ScrollViewer>
-
-                <Border Grid.Column="2"
-                        Padding="20"
-                        Background="{DynamicResource ShellUserPanelBackgroundBrush}"
-                        BorderBrush="{StaticResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="18">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="14" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <Border Padding="18"
-                                Background="{DynamicResource WindowBackgroundBrush}"
-                                BorderBrush="{DynamicResource BorderBrushDark}"
-                                BorderThickness="1"
-                                CornerRadius="18">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="10" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="12" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <StackPanel>
-                                    <TextBlock Text="Uygulama &#x00D6;zeti"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="20"
-                                               FontWeight="SemiBold" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Text="{Binding ReceiptRoundModeText}"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="13" />
-                                </StackPanel>
-
-                                <Grid Grid.Row="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="14" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border Padding="14"
-                                            Background="{DynamicResource ShellContentBackgroundBrush}"
-                                            CornerRadius="14">
-                                        <StackPanel>
-                                            <TextBlock Text="Se&#x00E7;ili Tan&#x0131;m"
-                                                       Foreground="{StaticResource TextMutedBrush}"
-                                                       FontSize="12" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ReceiptDiscountLabel}"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       FontSize="15"
-                                                       FontWeight="SemiBold"
-                                                       TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <Border Grid.Column="2"
-                                            Padding="14"
-                                            Background="{DynamicResource ShellContentBackgroundBrush}"
-                                            CornerRadius="14">
-                                        <StackPanel>
-                                            <TextBlock Text="Giri&#x015F; Hedefi"
-                                                       Foreground="{StaticResource TextMutedBrush}"
-                                                       FontSize="12" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ReceiptDiscountInputTargetText, StringFormat=Aktif alan: {0}}"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                                       FontSize="15"
-                                                       FontWeight="SemiBold" />
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-
-                                <Border Grid.Row="4"
-                                        Padding="16"
+                                <!-- Round mode description badge – only shown in round input mode -->
+                                <Border Grid.Column="1"
+                                        Margin="12,0,0,0"
+                                        Padding="12,8"
                                         Background="{DynamicResource ShellContentBackgroundBrush}"
-                                        CornerRadius="16">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel>
-                                            <TextBlock Text="Tahsil Edilecek Yeni Toplam"
-                                                       Foreground="{StaticResource TextMutedBrush}"
-                                                       FontSize="12" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       Text="{Binding ReceiptDiscountPreviewTotal, StringFormat={}{0:0.00} TL}"
-                                                       Foreground="{DynamicResource PrimaryBrush}"
-                                                       FontSize="32"
-                                                       FontWeight="Bold" />
-                                        </StackPanel>
-
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding ReceiptDiscountValue, StringFormat=-{0:0.00} TL}"
-                                                   Foreground="{DynamicResource MetroTileOrangeBrush}"
-                                                   FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Bottom" />
-                                    </Grid>
+                                        CornerRadius="14">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ReceiptDiscountInputTarget}" Value="round">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding ReceiptRoundModeText}"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               TextWrapping="Wrap"
+                                               MaxWidth="130"
+                                               VerticalAlignment="Center" />
                                 </Border>
                             </Grid>
                         </Border>
 
-                        <Border Grid.Row="2"
-                                Padding="16"
-                                Background="{DynamicResource WindowBackgroundBrush}"
-                                BorderBrush="{DynamicResource BorderBrushDark}"
-                                BorderThickness="1"
-                                CornerRadius="18">
-                            <StackPanel>
-                                <TextBlock Text="Numpad"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           FontSize="19"
-                                           FontWeight="SemiBold" />
-                                <TextBlock Margin="0,4,0,0"
-                                           Text="Se&#x00E7;ili alana h&#x0131;zl&#x0131; de&#x011F;er girmek i&#x00E7;in kullan."
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           FontSize="13" />
-                            </StackPanel>
-                        </Border>
-
-                        <UniformGrid Grid.Row="4"
+                        <!-- ══ NUMERIC KEYPAD ═════════════════════════ -->
+                        <!--
+                            UniformGrid fills the * row (~218 px at design height).
+                            Each of the 12 cells gets equal width and height.
+                            At 218 px / 4 rows → ~54 px tall buttons (above 50 px minimum).
+                            Margin gaps are 6 px to keep a clean grid appearance.
+                        -->
+                        <UniformGrid Grid.Row="6"
+                                     x:Name="NumpadGrid"
                                      Rows="4"
                                      Columns="3">
-                            <Button Margin="0,0,10,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="7" FontSize="24" FontWeight="Bold" Content="7" />
-                            <Button Margin="0,0,10,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="8" FontSize="24" FontWeight="Bold" Content="8" />
-                            <Button Margin="0,0,0,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="9" FontSize="24" FontWeight="Bold" Content="9" />
-                            <Button Margin="0,0,10,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="4" FontSize="24" FontWeight="Bold" Content="4" />
-                            <Button Margin="0,0,10,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="5" FontSize="24" FontWeight="Bold" Content="5" />
-                            <Button Margin="0,0,0,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="6" FontSize="24" FontWeight="Bold" Content="6" />
-                            <Button Margin="0,0,10,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="1" FontSize="24" FontWeight="Bold" Content="1" />
-                            <Button Margin="0,0,10,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="2" FontSize="24" FontWeight="Bold" Content="2" />
-                            <Button Margin="0,0,0,10" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="3" FontSize="24" FontWeight="Bold" Content="3" />
-                            <Button Margin="0,0,10,0" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="," FontSize="24" FontWeight="Bold" Content="," />
-                            <Button Margin="0,0,10,0" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="0" FontSize="24" FontWeight="Bold" Content="0" />
-                            <Button Margin="0,0,0,0" Command="{Binding AppendReceiptDiscountNumpadCommand}" CommandParameter="00" FontSize="24" FontWeight="Bold" Content="00" />
+                            <Button x:Name="NumpadSevenButton"
+                                    Margin="0,0,6,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="7"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="7" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="8"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="8" />
+                            <Button Margin="0,0,0,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="9"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="9" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="4"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="4" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="5"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="5" />
+                            <Button Margin="0,0,0,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="6"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="6" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="1"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="1" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="2"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="2" />
+                            <Button Margin="0,0,0,6"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="3"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="3" />
+                            <Button Margin="0,0,6,0"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter=","
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="," />
+                            <Button Margin="0,0,6,0"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="0"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="0" />
+                            <Button Margin="0,0,0,0"
+                                    Command="{Binding AppendReceiptDiscountNumpadCommand}"
+                                    CommandParameter="00"
+                                    Style="{StaticResource ReceiptDialogKeypadButtonStyle}"
+                                    Content="00" />
                         </UniformGrid>
 
-                        <Grid Grid.Row="6">
+                        <!-- ══ BOTTOM ACTION BAR ══════════════════════ -->
+                        <!--
+                            Column ratios: 1* | gap | 1* | gap | 1.6*
+                            Uygula is wider and green to be the dominant action.
+                            Temizle and Sil are equal-weight secondary neutrals.
+                        -->
+                        <Grid Grid.Row="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="1.25*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="1.6*" />
                             </Grid.ColumnDefinitions>
 
                             <Button Grid.Column="0"
-                                    Height="50"
                                     Command="{Binding ClearReceiptDiscountNumpadCommand}"
-                                    Style="{StaticResource SecondaryActionButtonStyle}">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <TextBlock Text="&#xE894;"
-                                               Margin="0,0,8,0"
-                                               FontFamily="Segoe MDL2 Assets"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Text="Temizle"
-                                               VerticalAlignment="Center" />
-                                </StackPanel>
+                                    Style="{StaticResource ReceiptDialogSecondaryButtonStyle}">
+                                <TextBlock Text="Temizle" />
                             </Button>
 
                             <Button Grid.Column="2"
-                                    Height="50"
                                     Command="{Binding BackspaceReceiptDiscountNumpadCommand}"
-                                    Style="{StaticResource SecondaryActionButtonStyle}">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <TextBlock Text="&#xE94F;"
-                                               Margin="0,0,8,0"
-                                               FontFamily="Segoe MDL2 Assets"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Text="Sil"
-                                               VerticalAlignment="Center" />
-                                </StackPanel>
+                                    Style="{StaticResource ReceiptDialogSecondaryButtonStyle}">
+                                <TextBlock Text="Sil" />
                             </Button>
 
                             <Button Grid.Column="4"
-                                    Height="50"
                                     Command="{Binding ApplyReceiptDiscountCommand}"
-                                    Style="{StaticResource SuccessActionButtonStyle}">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <TextBlock Text="&#xE73E;"
-                                               Margin="0,0,8,0"
-                                               FontFamily="Segoe MDL2 Assets"
-                                               VerticalAlignment="Center" />
-                                    <TextBlock Text="Fi&#x015F; &#x0130;ndirimini Uygula"
-                                               VerticalAlignment="Center" />
-                                </StackPanel>
+                                    Style="{StaticResource ReceiptDialogSuccessButtonStyle}">
+                                <TextBlock Text="Uygula" />
                             </Button>
                         </Grid>
+
                     </Grid>
-                </Border>
+                    <!-- End RightPanel -->
+
+                </Grid>
+                <!-- End Body -->
+
             </Grid>
-        </Grid>
-    </Border>
+        </Border>
+    </Grid>
 </UserControl>

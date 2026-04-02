@@ -17,14 +17,14 @@
             <RowDefinition Height="88" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="4*" />
+            <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="10" />
-            <ColumnDefinition Width="6*" />
+            <ColumnDefinition Width="5*" />
         </Grid.ColumnDefinitions>
 
         <Border Grid.Row="0"
                 Grid.Column="0"
-                Padding="16"
+                Padding="14,12"
                 Background="{DynamicResource ShellContentBackgroundBrush}"
                 BorderBrush="{StaticResource BorderBrushDark}"
                 BorderThickness="1"
@@ -32,45 +32,132 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="10" />
+                    <RowDefinition Height="8" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="10" />
+                    <RowDefinition Height="8" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="10" />
+                    <RowDefinition Height="6" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="6" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Left">
-                        <TextBlock Text="Sepet"
+                <!-- ── Üst Header: Mağaza adı · Kasa · Geri ── -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Sol: Mağaza + terminal etiketi -->
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StoreName}"
                                    Foreground="{StaticResource TextPrimaryBrush}"
-                                   FontSize="24"
+                                   FontSize="17"
                                    FontWeight="Bold" />
-                        <TextBlock Margin="0,6,0,0"
-                                   Text="{Binding ReceiptNo, StringFormat=Fiş: {0}}"
+                        <TextBlock Text="{Binding TerminalLabel}"
                                    Foreground="{StaticResource TextMutedBrush}"
-                                   FontSize="13" />
+                                   FontSize="12"
+                                   Margin="0,2,0,0" />
                     </StackPanel>
 
-                    <Button DockPanel.Dock="Right"
+                    <!-- Sağ: Geri butonu -->
+                    <Button Grid.Column="1"
                             Width="100"
-                            Height="38"
-                            Margin="12,0,0,0"
+                            Height="36"
                             Command="{Binding DataContext.DashboardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                             Style="{StaticResource CompactNavButtonStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE72B;"
                                        Margin="0,0,8,0"
                                        FontFamily="Segoe MDL2 Assets"
-                                       FontSize="13"
+                                       FontSize="12"
                                        VerticalAlignment="Center" />
                             <TextBlock Text="Geri"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
-                </DockPanel>
+                </Grid>
 
-                <Grid Grid.Row="2">
+                <!-- ── Fiş / Kasiyer / Saat info bar ── -->
+                <Border Grid.Row="2"
+                        Padding="12,7"
+                        Background="{DynamicResource WindowBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrushDark}"
+                        BorderThickness="1"
+                        CornerRadius="14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="1" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Fiş No -->
+                        <StackPanel Grid.Column="0"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,16,0">
+                            <TextBlock Text="FİŞ"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding ReceiptNo}"
+                                       Foreground="{DynamicResource PrimaryBrush}"
+                                       FontSize="15"
+                                       FontWeight="Bold"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+
+                        <!-- Dikey çizgi -->
+                        <Rectangle Grid.Column="1"
+                                   Width="1"
+                                   Fill="{DynamicResource BorderBrushDark}"
+                                   Margin="0,2" />
+
+                        <!-- Kasiyer -->
+                        <StackPanel Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Margin="16,0">
+                            <TextBlock Text="KASİYER"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding CashierName}"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+
+                        <!-- Dikey çizgi -->
+                        <Rectangle Grid.Column="3"
+                                   Width="1"
+                                   Fill="{DynamicResource BorderBrushDark}"
+                                   Margin="0,2" />
+
+                        <!-- Tarih ve Saat -->
+                        <StackPanel Grid.Column="4"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right"
+                                    Margin="16,0,0,0">
+                            <TextBlock Text="{Binding SessionDateText}"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Right" />
+                            <TextBlock Text="{Binding SessionTimeText}"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontSize="15"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="14" />
@@ -127,7 +214,7 @@
                             ><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE1A7;" Margin="0,0,8,0" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" /><TextBlock Text="Barkodu Tara" VerticalAlignment="Center" /></StackPanel></Button>
                 </Grid>
 
-                <Border Grid.Row="4"
+                <Border Grid.Row="6"
                         Padding="12,10"
                         Background="{DynamicResource ShellExitBackgroundBrush}"
                         BorderBrush="{DynamicResource ShellExitBackgroundBrush}"
@@ -152,7 +239,8 @@
                                FontWeight="SemiBold" />
                 </Border>
 
-                <DataGrid Grid.Row="6"
+                <DataGrid x:Name="BasketGrid"
+                          Grid.Row="8"
                           ItemsSource="{Binding BasketItems}"
                           SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                           AutoGenerateColumns="False"
@@ -164,10 +252,11 @@
                           IsReadOnly="True"
                           GridLinesVisibility="None"
                           RowHeaderWidth="0"
-                          RowHeight="44"
-                          MinRowHeight="44"
+                          RowHeight="42"
+                          MinRowHeight="42"
                           SelectionMode="Single"
                           SelectionUnit="FullRow"
+                          Cursor="Hand"
                           HorizontalAlignment="Stretch"
                           HorizontalContentAlignment="Stretch"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -176,7 +265,8 @@
                           BorderBrush="{StaticResource BorderBrushDark}"
                           BorderThickness="1"
                           Foreground="{StaticResource TextPrimaryBrush}"
-                          FontSize="15">
+                          FontSize="14"
+                          PreviewMouseLeftButtonDown="BasketGrid_PreviewMouseLeftButtonDown">
                     <DataGrid.Resources>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
@@ -189,22 +279,32 @@
                             <Setter Property="Padding" Value="12,10" />
                         </Style>
                         <Style TargetType="DataGridCell">
-                            <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                            <Setter Property="Background" Value="Transparent" />
                             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
                             <Setter Property="BorderThickness" Value="0" />
                             <Setter Property="Padding" Value="10,6" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                         </Style>
                         <Style TargetType="DataGridRow">
                             <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
                             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
                             <Setter Property="BorderThickness" Value="0,0,0,1" />
+                            <Setter Property="Margin" Value="0" />
                             <Style.Triggers>
+                                <!-- Son eklenen ürün: hafif vurgu -->
                                 <DataTrigger Binding="{Binding IsLastAdded}" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
                                 </DataTrigger>
+                                <!-- Hover: el imleci + arka plan ipucu -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}" />
+                                </Trigger>
+                                <!-- Seçili: sol mavi aksan çizgisi + mavi arka plan -->
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
                                     <Setter Property="Foreground" Value="White" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTileBlueBrush}" />
+                                    <Setter Property="BorderThickness" Value="4,0,0,1" />
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -213,7 +313,7 @@
                         <DataGridTextColumn Header="&#x00DC;r&#x00FC;n"
                                             Binding="{Binding ProductName}"
                                             Width="*"
-                                            MinWidth="280">
+                                            MinWidth="80">
                             <DataGridTextColumn.HeaderStyle>
                                 <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
                                     <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -228,63 +328,21 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTemplateColumn Header="Adet"
-                                                Width="130">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Grid HorizontalAlignment="Center">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="34" />
-                                            <ColumnDefinition Width="44" />
-                                            <ColumnDefinition Width="34" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Button Grid.Column="0"
-                                                Width="28"
-                                                Height="28"
-                                                Command="{Binding DataContext.DecreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
-                                                Background="{DynamicResource MetroTileOrangeBrush}"
-                                                Foreground="White"
-                                                BorderThickness="0"
-                                                Padding="0"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                FontSize="14"
-                                                FontWeight="Bold"
-                                                Click="RefocusBarcodeInput_Click"
-                                                Content="-" />
-
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Quantity}"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                                   FontSize="15"
-                                                   FontWeight="Bold"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center" />
-
-                                        <Button Grid.Column="2"
-                                                Width="28"
-                                                Height="28"
-                                                Command="{Binding DataContext.IncreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
-                                                Background="{DynamicResource MetroTileGreenBrush}"
-                                                Foreground="White"
-                                                BorderThickness="0"
-                                                Padding="0"
-                                                HorizontalContentAlignment="Center"
-                                                VerticalContentAlignment="Center"
-                                                FontSize="14"
-                                                FontWeight="Bold"
-                                                Click="RefocusBarcodeInput_Click"
-                                                Content="+" />
-                                    </Grid>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Adet"
+                                            Binding="{Binding Quantity}"
+                                            Width="60">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                    <Setter Property="FontSize" Value="14" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Fiyat"
                                             Binding="{Binding UnitPrice, StringFormat={}{0:0.00}}"
-                                            Width="96">
+                                            Width="78">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Right" />
@@ -295,7 +353,7 @@
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="Toplam"
                                             Binding="{Binding LineTotal, StringFormat={}{0:0.00}}"
-                                            Width="112">
+                                            Width="92">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Right" />
@@ -305,25 +363,29 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTemplateColumn Header="&#x0130;&#x015F;lem"
-                                                Width="72">
+
+                        <!-- Seçili satır göstergesi: seçilince "düzenle" ikonu belirir -->
+                        <DataGridTemplateColumn Width="32">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Width="42"
-                                            Height="28"
-                                            Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"
-                                            Background="{DynamicResource ShellExitBackgroundBrush}"
-                                            Foreground="White"
-                                            BorderThickness="0"
-                                            Padding="0"
-                                            HorizontalContentAlignment="Center"
-                                            VerticalContentAlignment="Center"
-                                            FontSize="11"
-                                            Style="{StaticResource DangerActionButtonStyle}"
-                                            Click="RefocusBarcodeInput_Click"
-                                            HorizontalAlignment="Center"
-                                            ><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" /></StackPanel></Button>
+                                    <TextBlock Text="&#xE70F;"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               FontSize="13"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="White"
+                                               Opacity="0.85">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -351,7 +413,7 @@
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Rows="1"
-                                         Columns="3" />
+                                         Columns="2" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -677,10 +739,10 @@
                 </Style>
             </Border.Style>
 
-            <Grid>
+            <Grid Margin="16">
                 <views:ReceiptDiscountDialogView DataContext="{Binding}"
-                                                 HorizontalAlignment="Center"
-                                                 VerticalAlignment="Center" />
+                                                 HorizontalAlignment="Stretch"
+                                                 VerticalAlignment="Stretch" />
             </Grid>
         </Border>
 
@@ -1261,6 +1323,231 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Ürün İşlemleri Modal -->
+        <Border Grid.Row="0"
+                Grid.RowSpan="3"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Background="#BB010A18">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsProductActionsModalOpen}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Grid>
+                <Border MaxWidth="620"
+                        Padding="24"
+                        Background="{DynamicResource ShellContentBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderBrushDark}"
+                        BorderThickness="1"
+                        CornerRadius="24"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Başlık -->
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Left">
+                                <TextBlock Text="Ürün İşlemleri"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="22"
+                                           FontWeight="Bold" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Text="{Binding SelectedItem.ProductName}"
+                                           Foreground="{DynamicResource PrimaryBrush}"
+                                           FontSize="15"
+                                           FontWeight="SemiBold" />
+                            </StackPanel>
+
+                            <Button DockPanel.Dock="Right"
+                                    Width="110"
+                                    Height="38"
+                                    Command="{Binding CloseProductActionsModalCommand}"
+                                    Background="{DynamicResource MetroTileSlateBrush}"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Style="{StaticResource SecondaryActionButtonStyle}"
+                                    Click="RefocusBarcodeInput_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE711;" Margin="0,0,8,0" FontFamily="Segoe MDL2 Assets" FontSize="12" VerticalAlignment="Center" />
+                                    <TextBlock Text="Kapat" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
+
+                        <!-- Seçili ürün bilgisi + miktar kontrolü -->
+                        <Border Grid.Row="2"
+                                Padding="16,12"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Ürün adı -->
+                                <TextBlock Text="{Binding SelectedItem.ProductName}"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" />
+
+                                <!-- Miktar +/- -->
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="Miktar"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,0,0,6" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="34" />
+                                            <ColumnDefinition Width="44" />
+                                            <ColumnDefinition Width="34" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button Grid.Column="0"
+                                                Width="30"
+                                                Height="30"
+                                                Command="{Binding DecreaseQuantityCommand}"
+                                                CommandParameter="{Binding SelectedItem}"
+                                                Background="{DynamicResource MetroTileOrangeBrush}"
+                                                Foreground="White"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                FontSize="16"
+                                                FontWeight="Bold"
+                                                Click="RefocusBarcodeInput_Click"
+                                                Content="-" />
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding SelectedItem.Quantity}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="20"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+
+                                        <Button Grid.Column="2"
+                                                Width="30"
+                                                Height="30"
+                                                Command="{Binding IncreaseQuantityCommand}"
+                                                CommandParameter="{Binding SelectedItem}"
+                                                Background="{DynamicResource MetroTileGreenBrush}"
+                                                Foreground="White"
+                                                BorderThickness="0"
+                                                Padding="0"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                FontSize="16"
+                                                FontWeight="Bold"
+                                                Click="RefocusBarcodeInput_Click"
+                                                Content="+" />
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Birim fiyat -->
+                                <StackPanel Grid.Column="4" HorizontalAlignment="Right">
+                                    <TextBlock Text="Birim Fiyat"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding SelectedItem.UnitPrice, StringFormat={}{0:0.00}}"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               Margin="0,4,0,0" />
+                                </StackPanel>
+
+                                <!-- Toplam -->
+                                <StackPanel Grid.Column="6" HorizontalAlignment="Right">
+                                    <TextBlock Text="Toplam"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               HorizontalAlignment="Right" />
+                                    <TextBlock Text="{Binding SelectedItem.LineTotal, StringFormat={}{0:0.00}}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="20"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Right"
+                                               Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- İşlem Butonları -->
+                        <ItemsControl Grid.Row="4"
+                                      ItemsSource="{Binding ProductActionItems}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button MinHeight="90"
+                                            Margin="0,0,10,10"
+                                            Padding="14"
+                                            Command="{Binding DataContext.TriggerPosActionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            IsEnabled="{Binding IsEnabled}"
+                                            BorderThickness="1"
+                                            Click="RefocusBarcodeInput_Click">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
+                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontSize="15"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,5,0,0"
+                                                       Text="{Binding Subtitle}"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       FontSize="12"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                 </Border>
             </Grid>

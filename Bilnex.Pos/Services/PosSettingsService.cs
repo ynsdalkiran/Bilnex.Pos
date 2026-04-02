@@ -22,6 +22,9 @@ public sealed class PosSettingsService
     private string _labelPrinterName = "Varsayılan Etiket Yazıcısı";
     private int _labelCopyCount = 1;
     private bool _printBarcodeOnLabel = true;
+    private string _storeName = "Bilnex POS";
+    private string _cashierName = "Demo Kasiyer";
+    private string _terminalLabel = "Ana Kasa";
 
     private PosSettingsService()
     {
@@ -101,6 +104,24 @@ public sealed class PosSettingsService
     {
         get => _printBarcodeOnLabel;
         private set => _printBarcodeOnLabel = value;
+    }
+
+    public string StoreName
+    {
+        get => _storeName;
+        private set => _storeName = value;
+    }
+
+    public string CashierName
+    {
+        get => _cashierName;
+        private set => _cashierName = value;
+    }
+
+    public string TerminalLabel
+    {
+        get => _terminalLabel;
+        private set => _terminalLabel = value;
     }
 
     public void UpdateQuickAmounts(IEnumerable<decimal> amounts)

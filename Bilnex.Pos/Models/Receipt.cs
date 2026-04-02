@@ -12,6 +12,7 @@ public sealed class Receipt : INotifyPropertyChanged
     private decimal _cashAmount;
     private decimal _cardAmount;
     private decimal _discountAmount;
+    private decimal _discountRate;
     private decimal _roundAdjustment;
     private string _discountLabel = string.Empty;
 
@@ -45,6 +46,12 @@ public sealed class Receipt : INotifyPropertyChanged
                 NotifyAmountPropertiesChanged();
             }
         }
+    }
+
+    public decimal DiscountRate
+    {
+        get => _discountRate;
+        private set => SetField(ref _discountRate, value);
     }
 
     public decimal RoundAdjustment
@@ -103,12 +110,13 @@ public sealed class Receipt : INotifyPropertyChanged
         CardAmount = 0m;
     }
 
-    public void ApplyReceiptAdjustment(decimal discountAmount, decimal roundAdjustment, string? discountLabel)
+    public void ApplyReceiptAdjustment(decimal discountAmount, decimal roundAdjustment, string? discountLabel, decimal discountRate = 0m)
     {
         var subtotal = SubtotalAmount;
         var clampedDiscount = Math.Max(0m, Math.Min(subtotal, decimal.Round(discountAmount, 2)));
 
         DiscountAmount = clampedDiscount;
+        DiscountRate = Math.Max(0m, decimal.Round(discountRate, 4));
         RoundAdjustment = decimal.Round(roundAdjustment, 2);
         DiscountLabel = discountLabel ?? string.Empty;
     }
@@ -116,6 +124,7 @@ public sealed class Receipt : INotifyPropertyChanged
     public void ClearReceiptAdjustment()
     {
         DiscountAmount = 0m;
+        DiscountRate = 0m;
         RoundAdjustment = 0m;
         DiscountLabel = string.Empty;
     }

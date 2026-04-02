@@ -24,19 +24,22 @@
     </Window.Resources>
 
     <Grid Background="{DynamicResource WindowBackgroundBrush}">
-        <Grid Margin="16">
+        <Grid Margin="16,10,16,16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="18" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="22" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0"
+        <!-- Drag strip — yalnızca windowed modda işlev görür; POS modda 0 yüksekliğe iner -->
+        <Border Height="18"
+                VerticalAlignment="Top"
                 Background="Transparent"
+                Panel.ZIndex="10"
                 MouseLeftButtonDown="DragStrip_MouseLeftButtonDown" />
 
-        <Border Grid.Row="1"
+        <!-- Dashboard header — sadece Dashboard'da görünür; collapse olunca satır da sıfırlanır -->
+        <Border Grid.Row="0"
+                Margin="0,18,0,14"
                 Padding="24,20"
                 Background="{DynamicResource ShellHeaderBackgroundBrush}"
                 BorderBrush="{DynamicResource ShellHeaderBorderBrush}"
@@ -143,7 +146,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="3"
+        <Border Grid.Row="1"
                 Padding="16"
                 Background="{DynamicResource ShellContentBackgroundBrush}"
                 BorderBrush="{DynamicResource ShellContentBorderBrush}"
@@ -152,7 +155,7 @@
             <ContentControl Content="{Binding CurrentView}" />
         </Border>
 
-        <ItemsControl Grid.RowSpan="4"
+        <ItemsControl Grid.RowSpan="2"
                       Margin="0,16,16,0"
                       Panel.ZIndex="20"
                       HorizontalAlignment="Right"
@@ -259,7 +262,7 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Grid Grid.RowSpan="4"
+        <Grid Grid.RowSpan="2"
               Panel.ZIndex="30"
               Background="#8C020617"
               Visibility="{Binding NotificationCenter.HasActiveOverlay, Converter={StaticResource BooleanToVisibilityConverter}}">
