@@ -14,7 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="10" />
-            <RowDefinition Height="88" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5*" />
@@ -23,12 +23,21 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.Row="0"
-                Grid.Column="0"
                 Padding="14,12"
                 Background="{DynamicResource ShellContentBackgroundBrush}"
                 BorderBrush="{StaticResource BorderBrushDark}"
                 BorderThickness="1"
                 CornerRadius="24">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Grid.Column" Value="0" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBasketRight}" Value="True">
+                            <Setter Property="Grid.Column" Value="2" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -395,12 +404,21 @@
         </Border>
 
         <Border Grid.Row="0"
-                Grid.Column="2"
                 Padding="16"
                 Background="{DynamicResource ShellUserPanelBackgroundBrush}"
                 BorderBrush="{StaticResource BorderBrushDark}"
                 BorderThickness="1"
                 CornerRadius="24">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Grid.Column" Value="2" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsBasketRight}" Value="True">
+                            <Setter Property="Grid.Column" Value="0" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -634,98 +652,404 @@
                 BorderThickness="1"
                 CornerRadius="24">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.7*" />
-                    <ColumnDefinition Width="8" />
-                    <ColumnDefinition Width="0.95*" />
-                    <ColumnDefinition Width="8" />
-                    <ColumnDefinition Width="0.95*" />
-                    <ColumnDefinition Width="8" />
-                    <ColumnDefinition Width="0.9*" />
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />  <!-- İndirim şeridi (gizlenebilir) -->
+                    <RowDefinition Height="Auto" />  <!-- Ayırıcı                        -->
+                    <RowDefinition Height="Auto" />  <!-- Ödeme satırı                   -->
+                </Grid.RowDefinitions>
 
-                <Border Grid.Column="0"
-                        Padding="18,10"
-                        Background="{DynamicResource ShellUserPanelBackgroundBrush}"
-                        CornerRadius="18">
+                <!-- ── İNDİRİM ŞERİDİ: yalnızca indirim varken görünür ── -->
+                <Border Grid.Row="0"
+                        Padding="12,8"
+                        CornerRadius="14"
+                        Background="{DynamicResource WindowBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderBrushDark}"
+                        BorderThickness="1">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsDiscountDisplayStrip}" Value="True" />
+                                        <Condition Binding="{Binding HasAnyDiscount}" Value="True" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="FlowDirection" Value="LeftToRight" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBasketRight}" Value="True">
+                                        <Setter Property="FlowDirection" Value="RightToLeft" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="TOPLAM TUTAR"
+                        <!-- Sol: "İNDİRİMLER" etiketi -->
+                        <StackPanel Grid.Column="0"
+                                    FlowDirection="LeftToRight"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,14,0">
+                            <TextBlock Text="&#128716; &#x0130;ND&#x0130;R&#x0130;MLER"
                                        Foreground="{StaticResource TextMutedBrush}"
-                                        FontSize="12"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Margin="0,4,0,0"
-                                       Text="{Binding ItemCount}"
-                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                       FontSize="14" />
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
                         </StackPanel>
 
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding TotalAmount, StringFormat={}{0:0.00}}"
-                                   Foreground="{DynamicResource PrimaryBrush}"
-                                   FontSize="32"
-                                   FontWeight="Bold"
-                                   VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
+                        <!-- Orta: indirim rozetleri -->
+                        <StackPanel Grid.Column="1"
+                                    FlowDirection="LeftToRight"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
 
-                <ItemsControl Grid.Column="2"
-                              Grid.ColumnSpan="3"
-                              ItemsSource="{Binding PaymentMethods}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Rows="1" Columns="2" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Margin="0,0,10,0"
-                                    Height="58"
-                                    Command="{Binding DataContext.OpenPaymentMethodCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding Key}"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    Cursor="Hand"
-                                    FontSize="17"
-                                    FontWeight="Bold"
-                                    Click="RefocusBarcodeInput_Click"
-                                    Content="{Binding Title}">
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Background" Value="{DynamicResource MetroTileSlateBrush}" />
+                            <!-- Satır indirimi rozeti -->
+                            <Border Padding="9,5"
+                                    CornerRadius="9"
+                                    Margin="0,0,7,0"
+                                    Background="#FFF3E0">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Key}" Value="Cash">
-                                                <Setter Property="Background" Value="{DynamicResource MetroTileGreenBrush}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Key}" Value="Card">
-                                                <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
+                                            <DataTrigger Binding="{Binding HasReceiptLineDiscount}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                                </Border.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Sat&#x0131;r &#x0130;nd. "
+                                               Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding ReceiptLineDiscountValue, StringFormat=&#x2212;{0:0.00} TL}"
+                                               Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
 
-                <Button Grid.Column="6"
-                        Content="Ödeme Al"
-                        FontSize="17"
-                        Padding="12,6"
-                        FontWeight="Bold"
-                        Background="{DynamicResource MetroTileTealBrush}"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        Height="58"
-                        Style="{StaticResource PrimaryActionButtonStyle}"
-                        Click="RefocusBarcodeInput_Click"
-                        Command="{Binding ReceivePaymentCommand}" />
+                            <!-- Fiş indirimi rozeti -->
+                            <Border Padding="9,5"
+                                    CornerRadius="9"
+                                    Margin="0,0,7,0"
+                                    Background="#E3F2FD">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasReceiptDiscount}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Fi&#x015F; &#x0130;nd. "
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding ReceiptDiscountValue, StringFormat=&#x2212;{0:0.00} TL}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Yuvarlama rozeti -->
+                            <Border Padding="9,5"
+                                    CornerRadius="9"
+                                    Margin="0,0,7,0"
+                                    Background="#E8F5E9">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasReceiptRoundAdjustment}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Yuvarlama "
+                                               Foreground="{DynamicResource MetroTileGreenBrush}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Foreground="{DynamicResource MetroTileGreenBrush}"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center">
+                                        <Run Text="{Binding ReceiptRoundValueText, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Sağ: toplam tasarruf -->
+                        <StackPanel Grid.Column="2"
+                                    FlowDirection="LeftToRight"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="Toplam Tasarruf "
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="11"
+                                       VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalSavingsAmount, StringFormat=&#x2212;{0:0.00} TL}"
+                                       Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Ayırıcı (yalnızca şerit görünürken) -->
+                <Border Grid.Row="1" Height="8">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsDiscountDisplayStrip}" Value="True" />
+                                        <Condition Binding="{Binding HasAnyDiscount}" Value="True" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
+
+                <!-- ── ÖDEME SATIRI (sabit yükseklik, orijinal yapı korundu) ── -->
+                <Grid Grid.Row="2">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="FlowDirection" Value="LeftToRight" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBasketRight}" Value="True">
+                                    <Setter Property="FlowDirection" Value="RightToLeft" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.7*" />
+                        <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="0.95*" />
+                        <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="0.95*" />
+                        <ColumnDefinition Width="8" />
+                        <ColumnDefinition Width="0.9*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0"
+                            FlowDirection="LeftToRight"
+                            Padding="18,10"
+                            Background="{DynamicResource ShellUserPanelBackgroundBrush}"
+                            CornerRadius="18">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="TOPLAM TUTAR"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Text="{Binding ItemCount}"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="14" />
+                            </StackPanel>
+
+                            <!-- DURUM A: Basit toplam (Strip modu veya indirim yok) -->
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding TotalAmount, StringFormat={}{0:0.00}}"
+                                       Foreground="{DynamicResource PrimaryBrush}"
+                                       FontSize="32"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsDiscountDisplayTotalCard}" Value="True" />
+                                                    <Condition Binding="{Binding HasAnyDiscount}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- DURUM B: İndirim detayı (TotalCard modu + indirim varken) -->
+                            <StackPanel Grid.Column="1"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsDiscountDisplayTotalCard}" Value="True" />
+                                                    <Condition Binding="{Binding HasAnyDiscount}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <!-- Orijinal tutar (üstü çizili) -->
+                                <TextBlock Text="{Binding ReceiptOriginalSubtotal, StringFormat={}{0:0.00} TL}"
+                                           TextDecorations="Strikethrough"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="12"
+                                           HorizontalAlignment="Right" />
+
+                                <!-- İndirim rozetleri -->
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Right"
+                                            Margin="0,3,0,3">
+                                    <Border Padding="6,3" CornerRadius="7" Margin="0,0,4,0" Background="#FFF3E0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasReceiptLineDiscount}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding ReceiptLineDiscountValue, StringFormat=&#x2212;{0:0.00}}"
+                                                   Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                                   FontSize="11" FontWeight="Bold" />
+                                    </Border>
+                                    <Border Padding="6,3" CornerRadius="7" Margin="0,0,4,0" Background="#E3F2FD">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasReceiptDiscount}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding ReceiptDiscountValue, StringFormat=&#x2212;{0:0.00}}"
+                                                   Foreground="{DynamicResource PrimaryBrush}"
+                                                   FontSize="11" FontWeight="Bold" />
+                                    </Border>
+                                    <Border Padding="6,3" CornerRadius="7" Background="#E8F5E9">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasReceiptRoundAdjustment}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Foreground="{DynamicResource MetroTileGreenBrush}"
+                                                   FontSize="11" FontWeight="Bold">
+                                            <Run Text="{Binding ReceiptRoundValueText, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Nihai toplam (büyük) -->
+                                <TextBlock Text="{Binding TotalAmount, StringFormat={}{0:0.00}}"
+                                           Foreground="{DynamicResource PrimaryBrush}"
+                                           FontSize="26"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Right" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <ItemsControl Grid.Column="2"
+                                  Grid.ColumnSpan="3"
+                                  FlowDirection="LeftToRight"
+                                  ItemsSource="{Binding PaymentMethods}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" Columns="2" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Margin="0,0,10,0"
+                                        Height="58"
+                                        Command="{Binding DataContext.OpenPaymentMethodCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding Key}"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        FontSize="17"
+                                        FontWeight="Bold"
+                                        Click="RefocusBarcodeInput_Click"
+                                        Content="{Binding Title}">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="{DynamicResource MetroTileSlateBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Key}" Value="Cash">
+                                                    <Setter Property="Background" Value="{DynamicResource MetroTileGreenBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Key}" Value="Card">
+                                                    <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Grid.Column="6"
+                            FlowDirection="LeftToRight"
+                            Content="Ödeme Al"
+                            FontSize="17"
+                            Padding="12,6"
+                            FontWeight="Bold"
+                            Background="{DynamicResource MetroTileTealBrush}"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Height="58"
+                            Style="{StaticResource PrimaryActionButtonStyle}"
+                            Click="RefocusBarcodeInput_Click"
+                            Command="{Binding ReceivePaymentCommand}" />
+                </Grid>
             </Grid>
         </Border>
 
@@ -756,7 +1080,7 @@
                 Grid.RowSpan="3"
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
-                Background="#AA020617">
+                Background="#BB010409">
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -767,229 +1091,9 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-
-            <Grid>
-                <Border Width="560"
-                        Padding="28"
-                        Background="{DynamicResource ShellContentBackgroundBrush}"
-                        BorderBrush="{StaticResource BorderBrushDark}"
-                        BorderThickness="1"
-                        CornerRadius="26"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
-                                <TextBlock Text="Ödeme Al"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           FontSize="30"
-                                           FontWeight="Bold" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="{Binding PaymentMethodTitle}"
-                                           Foreground="{DynamicResource PrimaryBrush}"
-                                           FontSize="16"
-                                           FontWeight="SemiBold" />
-                            </StackPanel>
-
-                            <Button DockPanel.Dock="Right"
-                                    Width="120"
-                                    Height="42"
-                                    Command="{Binding CancelPaymentCommand}"
-                                    Background="{DynamicResource MetroTileOrangeBrush}"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    FontSize="16"
-                                    FontWeight="SemiBold"
-                                    Style="{StaticResource DangerActionButtonStyle}"
-                                    ><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE711;" Margin="0,0,8,0" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" /><TextBlock Text="Vazgeç" VerticalAlignment="Center" /></StackPanel></Button>
-                        </DockPanel>
-
-                        <Border Grid.Row="2"
-                                Padding="18"
-                                Background="{DynamicResource WindowBackgroundBrush}"
-                                CornerRadius="18">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel>
-                                    <TextBlock Text="Ödenecek Tutar"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="14" />
-                                    <TextBlock Margin="0,6,0,0"
-                                               Text="{Binding ItemCount}"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="15" />
-                                </StackPanel>
-
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding TotalAmount, StringFormat={}{0:0.00}}"
-                                           Foreground="{DynamicResource PrimaryBrush}"
-                                           FontSize="40"
-                                           FontWeight="Bold"
-                                           VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <Grid Grid.Row="4">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsCashPayment}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="12" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="12" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Text="Alınan Tutar"
-                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                       FontSize="16"
-                                       FontWeight="SemiBold" />
-
-                            <TextBox Grid.Row="2"
-                                     Height="50"
-                                     Padding="14,10"
-                                     Text="{Binding ReceivedAmountText, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="22"
-                                     Background="{DynamicResource WindowBackgroundBrush}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     BorderBrush="{StaticResource BorderBrushDark}"
-                                     BorderThickness="1"
-                                     VerticalContentAlignment="Center" />
-
-                            <ItemsControl Grid.Row="4"
-                                          ItemsSource="{Binding QuickAmounts}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Columns="3" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Margin="0,0,10,10"
-                                                Height="42"
-                                                Command="{Binding DataContext.SetQuickReceivedAmountCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding Value}"
-                                                Foreground="White"
-                                                BorderThickness="0"
-                                                FontSize="15"
-                                                FontWeight="SemiBold"
-                                                Content="{Binding Title}">
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Background" Value="{DynamicResource MetroTileSlateBrush}" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Value}" Value="TOTAL">
-                                                            <Setter Property="Background" Value="{DynamicResource MetroTileTealBrush}" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
-
-                        <Border Grid.Row="6"
-                                Padding="18"
-                                Background="{DynamicResource ShellUserPanelBackgroundBrush}"
-                                CornerRadius="18">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="18" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="18" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel>
-                                    <TextBlock Text="Para Üstü"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               FontSize="14" />
-                                    <TextBlock Margin="0,6,0,0"
-                                               Text="{Binding ChangeAmountText}"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               FontSize="28"
-                                               FontWeight="Bold" />
-                                </StackPanel>
-
-                                <ItemsControl Grid.Column="1"
-                                              Grid.ColumnSpan="3"
-                                              ItemsSource="{Binding PaymentMethods}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <UniformGrid Rows="1" Columns="2" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Margin="0,0,18,0"
-                                                    Height="52"
-                                                    Command="{Binding DataContext.SelectPaymentMethodCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding Key}"
-                                                    Foreground="White"
-                                                    BorderThickness="0"
-                                                    FontSize="20"
-                                                    FontWeight="Bold"
-                                                    Content="{Binding Title}">
-                                                <Button.Style>
-                                            <Style TargetType="Button">
-                                                        <Setter Property="Background" Value="{DynamicResource MetroTileSlateBrush}" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Key}" Value="Cash">
-                                                                <Setter Property="Background" Value="{DynamicResource MetroTileGreenBrush}" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Key}" Value="Card">
-                                                                <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-
-                                <Button Grid.Column="5"
-                                        Width="150"
-                                        Height="52"
-                                        Command="{Binding CompletePaymentCommand}"
-                                        Background="{DynamicResource MetroTileTealBrush}"
-                                        Foreground="White"
-                                        BorderThickness="0"
-                                        FontSize="20"
-                                        FontWeight="Bold"
-                                        Style="{StaticResource SuccessActionButtonStyle}"
-                                        ><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE73E;" Margin="0,0,8,0" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" /><TextBlock Text="Onayla" VerticalAlignment="Center" /></StackPanel></Button>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </Border>
-            </Grid>
+            <views:PaymentDialogView DataContext="{Binding}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" />
         </Border>
 
         <Border Grid.Row="0"
@@ -1254,6 +1358,7 @@
                                                     <RowDefinition Height="Auto" />
                                                     <RowDefinition Height="14" />
                                                     <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
                                                 </Grid.RowDefinitions>
 
                                                 <ItemsControl ItemsSource="{Binding Items}">
@@ -1292,7 +1397,72 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <Grid Grid.Row="2">
+                                                <!-- Ödeme Kalemleri -->
+                                                <Border Grid.Row="2"
+                                                        Padding="12,10"
+                                                        Margin="0,0,0,10"
+                                                        Background="{DynamicResource WindowBackgroundBrush}"
+                                                        CornerRadius="12">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasPaymentEntries}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <StackPanel>
+                                                        <TextBlock Text="Ödeme Yöntemleri"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                                   Margin="0,0,0,6" />
+                                                        <ItemsControl ItemsSource="{Binding PaymentEntries}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid Margin="0,0,0,4">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                            <ColumnDefinition Width="*" />
+                                                                            <ColumnDefinition Width="Auto" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <Border Padding="6,2"
+                                                                                CornerRadius="6"
+                                                                                Margin="0,0,8,0">
+                                                                            <Border.Style>
+                                                                                <Style TargetType="Border">
+                                                                                    <Setter Property="Background" Value="{DynamicResource MetroTileSlateBrush}" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Method}" Value="Cash">
+                                                                                            <Setter Property="Background" Value="{DynamicResource MetroTileGreenBrush}" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding Method}" Value="Card">
+                                                                                            <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Border.Style>
+                                                                            <TextBlock Text="{Binding MethodTitle}"
+                                                                                       Foreground="White"
+                                                                                       FontSize="11"
+                                                                                       FontWeight="SemiBold" />
+                                                                        </Border>
+                                                                        <TextBlock Grid.Column="2"
+                                                                                   Text="{Binding Amount, StringFormat={}{0:0.00} TL}"
+                                                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                                                   FontSize="13"
+                                                                                   FontWeight="SemiBold"
+                                                                                   HorizontalAlignment="Right" />
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <Grid Grid.Row="3">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="14" />
@@ -1321,7 +1491,7 @@
                                                             FontSize="15"
                                                             FontWeight="SemiBold"
                                                             Click="RefocusBarcodeInput_Click"
-                                                            Content="Tekrar Satışa Aktar" />
+                                                            ><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE70F;" Margin="0,0,7,0" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" FontSize="13" /><TextBlock Text="Fişi Düzenle" VerticalAlignment="Center" /></StackPanel></Button>
                                                 </Grid>
                                             </Grid>
                                         </Border>
@@ -1558,6 +1728,30 @@
                 </Border>
             </Grid>
         </Border>
+        <!-- Ürün İşlemleri – İndirim / Fiyat Değiştir Dialog -->
+        <Border Grid.Row="0"
+                Grid.RowSpan="3"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Background="#BB010A18">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsLineItemActionDialogOpen}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <Grid Margin="16">
+                <views:LineItemActionDialogView DataContext="{Binding}"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch" />
+            </Grid>
+        </Border>
+
     </Grid>
 </UserControl>
 

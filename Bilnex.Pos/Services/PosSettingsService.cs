@@ -29,6 +29,8 @@ public sealed class PosSettingsService
     private int _quickProductMinButtonHeight = 72;
     private int _quickProductButtonFontSize = 16;
     private int _quickProductCategoryColumns = 5;
+    private string _discountDisplayMode = "Strip";
+    private string _basketPosition = "Left";
 
     private PosSettingsService()
     {
@@ -152,6 +154,18 @@ public sealed class PosSettingsService
         private set => _quickProductCategoryColumns = value;
     }
 
+    public string DiscountDisplayMode
+    {
+        get => _discountDisplayMode;
+        private set => _discountDisplayMode = value;
+    }
+
+    public string BasketPosition
+    {
+        get => _basketPosition;
+        private set => _basketPosition = value;
+    }
+
     public void UpdateQuickProductLayout(int columns, int minButtonHeight, int buttonFontSize, int categoryColumns)
     {
         ApplyQuickProductLayout(columns, minButtonHeight, buttonFontSize, categoryColumns);
@@ -161,6 +175,18 @@ public sealed class PosSettingsService
     public void ResetQuickProductLayout()
     {
         ApplyQuickProductLayout(2, 72, 16, 5);
+        SaveSettings();
+    }
+
+    public void UpdatePosLayoutSettings(string discountDisplayMode, string basketPosition)
+    {
+        ApplyPosLayoutSettings(discountDisplayMode, basketPosition);
+        SaveSettings();
+    }
+
+    public void ResetPosLayoutSettings()
+    {
+        ApplyPosLayoutSettings("Strip", "Left");
         SaveSettings();
     }
 
@@ -277,6 +303,9 @@ public sealed class PosSettingsService
                 settings.QuickProductMinButtonHeight,
                 settings.QuickProductButtonFontSize,
                 settings.QuickProductCategoryColumns);
+            ApplyPosLayoutSettings(
+                settings.DiscountDisplayMode,
+                settings.BasketPosition);
             SaveSettings();
         }
         catch
@@ -310,7 +339,9 @@ public sealed class PosSettingsService
             QuickProductColumns = QuickProductColumns,
             QuickProductMinButtonHeight = QuickProductMinButtonHeight,
             QuickProductButtonFontSize = QuickProductButtonFontSize,
-            QuickProductCategoryColumns = QuickProductCategoryColumns
+            QuickProductCategoryColumns = QuickProductCategoryColumns,
+            DiscountDisplayMode = DiscountDisplayMode,
+            BasketPosition = BasketPosition
         };
 
         var json = JsonSerializer.Serialize(settings, _jsonOptions);
@@ -326,6 +357,7 @@ public sealed class PosSettingsService
         ApplyPriceChangeSettings("Percentage", 0m, true);
         ApplyLabelPrintSettings("50x30", "Varsayılan Etiket Yazıcısı", 1, true);
         ApplyQuickProductLayout(2, 72, 16, 5);
+        ApplyPosLayoutSettings("Strip", "Left");
     }
 
     private void ApplyQuickAmounts(IEnumerable<decimal> amounts)
@@ -455,6 +487,30 @@ public sealed class PosSettingsService
         QuickProductCategoryColumns = Math.Max(1, Math.Min(10, categoryColumns));
     }
 
+    private void ApplyPosLayoutSettings(string? discountDisplayMode, string? basketPosition)
+    {
+        DiscountDisplayMode = NormalizeDiscountDisplayMode(discountDisplayMode);
+        BasketPosition = NormalizeBasketPosition(basketPosition);
+    }
+
+    private static string NormalizeDiscountDisplayMode(string? mode)
+    {
+        return mode?.Trim().ToLowerInvariant() switch
+        {
+            "totalcard" => "TotalCard",
+            _ => "Strip"
+        };
+    }
+
+    private static string NormalizeBasketPosition(string? position)
+    {
+        return position?.Trim().ToLowerInvariant() switch
+        {
+            "right" => "Right",
+            _ => "Left"
+        };
+    }
+
     private sealed class PosSettingsFile
     {
         public List<decimal> QuickAmounts { get; set; } = new();
@@ -488,5 +544,9 @@ public sealed class PosSettingsService
         public int QuickProductButtonFontSize { get; set; } = 16;
 
         public int QuickProductCategoryColumns { get; set; } = 5;
+
+        public string DiscountDisplayMode { get; set; } = "Strip";
+
+        public string BasketPosition { get; set; } = "Left";
     }
 }

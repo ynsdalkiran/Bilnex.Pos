@@ -859,6 +859,340 @@
                     </Grid>
                 </TabItem>
 
+                <!-- ═══════════════════════════════════════════════════════ -->
+                <!-- POS GÖRÜNÜM Ayarları                                    -->
+                <!-- ═══════════════════════════════════════════════════════ -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE771;"
+                                           Margin="0,0,10,0"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="16"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Text="POS G&#xF6;r&#xFC;n&#xFC;m"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Margin="26,6,0,0" Text="D&#xFC;zen ve g&#xF6;r&#xFC;n&#xFC;m" FontSize="12" Opacity="0.8" />
+                        </StackPanel>
+                    </TabItem.Header>
+
+                    <Grid Margin="8,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*" />
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Sol: Ayar kartları -->
+                        <Border Padding="24"
+                                Background="{DynamicResource ShellContentBackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="20">
+                            <StackPanel>
+                                <TextBlock Text="POS G&#xF6;r&#xFC;n&#xFC;m Ayarlar&#x131;"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="24"
+                                           FontWeight="SemiBold" />
+
+                                <TextBlock Margin="0,12,0,0"
+                                           Text="Sepet konumunu ve indirim bilgisinin g&#xF6;sterilece&#x11F;i alg&#x131; yap&#x131;land&#x131;r&#x131;n. De&#x11F;i&#x15F;iklikler POS ekran&#x131;na d&#xF6;n&#xFC;ld&#xFC;&#x11F;&#xFC;nde uygulan&#x131;r."
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="14"
+                                           TextWrapping="Wrap" />
+
+                                <!-- ── İndirim Görüntüleme Modu ── -->
+                                <TextBlock Margin="0,24,0,0"
+                                           Text="&#x0130;ndirim G&#xF6;r&#xFC;nt&#xFC;leme"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="14"
+                                           FontWeight="SemiBold" />
+
+                                <UniformGrid Columns="2" Margin="0,10,0,0" Height="110">
+                                    <!-- Alt Şerit seçeneği -->
+                                    <Border Margin="0,0,6,0"
+                                            CornerRadius="14"
+                                            BorderThickness="2"
+                                            Padding="14,12"
+                                            Cursor="Hand">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDiscountDisplayStrip}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource ShellUserPanelBackgroundBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick"
+                                                          Command="{Binding DataContext.SavePosLayoutCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          CommandParameter="DiscountStrip" />
+                                        </Border.InputBindings>
+                                        <RadioButton IsChecked="{Binding IsDiscountDisplayStrip, Mode=TwoWay}"
+                                                     GroupName="DiscountDisplay"
+                                                     Cursor="Hand"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FocusVisualStyle="{x:Null}">
+                                            <StackPanel>
+                                                <TextBlock Text="Alt &#x15E;erit"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="&#x0130;ndirimler &#xF6;deme sat&#x131;r&#x131;n&#x131;n &#xFC;st&#xFC;nde ayr&#x131; bir &#x15F;erit olarak g&#xF6;r&#xFC;n&#xFC;r."
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </Border>
+
+                                    <!-- Toplam Kartı seçeneği -->
+                                    <Border Margin="6,0,0,0"
+                                            CornerRadius="14"
+                                            BorderThickness="2"
+                                            Padding="14,12"
+                                            Cursor="Hand">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDiscountDisplayTotalCard}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource ShellUserPanelBackgroundBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <RadioButton IsChecked="{Binding IsDiscountDisplayTotalCard, Mode=TwoWay}"
+                                                     GroupName="DiscountDisplay"
+                                                     Cursor="Hand"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FocusVisualStyle="{x:Null}">
+                                            <StackPanel>
+                                                <TextBlock Text="Toplam Kart&#x131;"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="&#x0130;ndirimler TOPLAM TUTAR kart&#x131; i&#xE7;inde kompakt olarak g&#xF6;r&#xFC;n&#xFC;r."
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </Border>
+                                </UniformGrid>
+
+                                <!-- ── Sepet Konumu ── -->
+                                <TextBlock Margin="0,24,0,0"
+                                           Text="Sepet Konumu"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="14"
+                                           FontWeight="SemiBold" />
+
+                                <UniformGrid Columns="2" Margin="0,10,0,0" Height="110">
+                                    <!-- Sol seçeneği -->
+                                    <Border Margin="0,0,6,0"
+                                            CornerRadius="14"
+                                            BorderThickness="2"
+                                            Padding="14,12"
+                                            Cursor="Hand">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBasketLeft}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource ShellUserPanelBackgroundBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <RadioButton IsChecked="{Binding IsBasketLeft, Mode=TwoWay}"
+                                                     GroupName="BasketPosition"
+                                                     Cursor="Hand"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FocusVisualStyle="{x:Null}">
+                                            <StackPanel>
+                                                <TextBlock Text="&#x2190; Sol"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="Sepet (&#xFC;r&#xFC;n listesi) ekran&#x131;n sol taraf&#x131;nda yer al&#x131;r."
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </Border>
+
+                                    <!-- Sağ seçeneği -->
+                                    <Border Margin="6,0,0,0"
+                                            CornerRadius="14"
+                                            BorderThickness="2"
+                                            Padding="14,12"
+                                            Cursor="Hand">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushDark}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBasketRight}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource ShellUserPanelBackgroundBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <RadioButton IsChecked="{Binding IsBasketRight, Mode=TwoWay}"
+                                                     GroupName="BasketPosition"
+                                                     Cursor="Hand"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     FocusVisualStyle="{x:Null}">
+                                            <StackPanel>
+                                                <TextBlock Text="Sa&#x11F; &#x2192;"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="Sepet ekran&#x131;n sa&#x11F; taraf&#x131;na ta&#x15F;&#x131;n&#x131;r, &#xFC;r&#xFC;nler solda kal&#x131;r."
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextMutedBrush}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </Border>
+                                </UniformGrid>
+
+                                <!-- Butonlar -->
+                                <Grid Margin="0,28,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0"
+                                            Height="46"
+                                            Content="Varsay&#x131;lana S&#x131;f&#x131;rla"
+                                            FontSize="14"
+                                            Command="{Binding ResetPosLayoutCommand}"
+                                            Background="{DynamicResource WindowBackgroundBrush}"
+                                            Foreground="{StaticResource TextPrimaryBrush}"
+                                            BorderBrush="{StaticResource BorderBrushDark}"
+                                            BorderThickness="1"
+                                            Cursor="Hand" />
+                                    <Button Grid.Column="2"
+                                            Height="46"
+                                            Padding="28,0"
+                                            Content="Kaydet"
+                                            FontSize="14"
+                                            FontWeight="SemiBold"
+                                            Command="{Binding SavePosLayoutCommand}"
+                                            Background="{DynamicResource MetroTileGreenBrush}"
+                                            Foreground="White"
+                                            BorderThickness="0"
+                                            Cursor="Hand" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Sağ: Önizleme / bilgi kartı -->
+                        <Border Grid.Column="2"
+                                Padding="20"
+                                Background="{DynamicResource ShellContentBackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="20">
+                            <StackPanel>
+                                <TextBlock Text="Aktif Ayarlar"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="18"
+                                           FontWeight="SemiBold" />
+
+                                <Border Margin="0,16,0,0"
+                                        Padding="14,12"
+                                        Background="{DynamicResource WindowBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderBrushDark}"
+                                        BorderThickness="1"
+                                        CornerRadius="14">
+                                    <StackPanel>
+                                        <TextBlock Text="&#x0130;ndirim G&#xF6;r&#xFC;nt&#xFC;leme"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource PrimaryBrush}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Alt &#x15E;erit" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsDiscountDisplayTotalCard}" Value="True">
+                                                            <Setter Property="Text" Value="Toplam Kart&#x131;" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="0,10,0,0"
+                                        Padding="14,12"
+                                        Background="{DynamicResource WindowBackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderBrushDark}"
+                                        BorderThickness="1"
+                                        CornerRadius="14">
+                                    <StackPanel>
+                                        <TextBlock Text="Sepet Konumu"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="13" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource PrimaryBrush}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="&#x2190; Sol" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsBasketRight}" Value="True">
+                                                            <Setter Property="Text" Value="Sa&#x11F; &#x2192;" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Margin="0,18,0,0"
+                                        Padding="14,12"
+                                        Background="{DynamicResource WindowBackgroundBrush}"
+                                        CornerRadius="14">
+                                    <TextBlock Text="{Binding StatusMessage}"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="13"
+                                               TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
             </TabControl>
         </Grid>
     </Border>

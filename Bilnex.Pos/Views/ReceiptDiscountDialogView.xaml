@@ -228,7 +228,7 @@
                             82+8+62+8+102+8+116+8 = 394 fixed → Round = ~154 px
                         -->
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="82" />    <!-- Totals          -->
+                            <RowDefinition Height="112" />   <!-- Totals          -->
                             <RowDefinition Height="8" />
                             <RowDefinition Height="62" />    <!-- Applied info     -->
                             <RowDefinition Height="8" />
@@ -240,12 +240,31 @@
                         </Grid.RowDefinitions>
 
                         <!-- 1 ▸ TOTALS CARD  (strongest emphasis) ──── -->
-                        <Border Padding="16,14"
+                        <!--
+                            Satır indirimi YOK  →  [Ara Toplam] [→] [Yeni Toplam]
+                            Satır indirimi VAR  →  [Orijinal] [−Satır] [→] [Ara] [→] [Yeni]
+                            Her iki durum aynı Border içinde, Visibility DataTrigger ile yönetilir.
+                        -->
+                        <Border Padding="14,12"
                                 Background="{DynamicResource WindowBackgroundBrush}"
                                 BorderBrush="{DynamicResource BorderBrushDark}"
                                 BorderThickness="1"
                                 CornerRadius="18">
+                            <!-- Wrapper: Border tek child alır; iki durum Grid içinde -->
+                            <Grid>
+
+                            <!-- DURUM A: Satır indirimi YOK -->
                             <Grid VerticalAlignment="Center">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasReceiptLineDiscount}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="8" />
@@ -256,20 +275,19 @@
                                     <TextBlock Text="Ara Toplam"
                                                Foreground="{StaticResource TextMutedBrush}"
                                                FontSize="11" />
-                                    <TextBlock Margin="0,5,0,0"
+                                    <TextBlock Margin="0,4,0,0"
                                                Text="{Binding ReceiptDiscountSubtotal, StringFormat={}{0:0.00} TL}"
                                                Foreground="{StaticResource TextPrimaryBrush}"
                                                FontSize="20"
                                                FontWeight="Bold" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2"
-                                            HorizontalAlignment="Right">
+                                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
                                     <TextBlock Text="Yeni Toplam"
                                                Foreground="{StaticResource TextMutedBrush}"
                                                FontSize="11"
                                                HorizontalAlignment="Right" />
-                                    <TextBlock Margin="0,5,0,0"
+                                    <TextBlock Margin="0,4,0,0"
                                                Text="{Binding ReceiptDiscountPreviewTotal, StringFormat={}{0:0.00} TL}"
                                                Foreground="{DynamicResource PrimaryBrush}"
                                                FontSize="20"
@@ -277,6 +295,110 @@
                                                HorizontalAlignment="Right" />
                                 </StackPanel>
                             </Grid>
+
+                            <!-- DURUM B: Satır indirimi VAR – 2 satır zincir -->
+                            <Grid VerticalAlignment="Center">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasReceiptLineDiscount}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />  <!-- Üst: indirim zinciri  -->
+                                    <RowDefinition Height="6" />
+                                    <RowDefinition Height="Auto" />  <!-- Alt: yeni toplam      -->
+                                </Grid.RowDefinitions>
+
+                                <!-- Üst satır: Orijinal → -Satır → Ara -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                    <!-- Orijinal (üstü çizili) -->
+                                    <StackPanel VerticalAlignment="Bottom">
+                                        <TextBlock Text="Orijinal"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="10" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   Text="{Binding ReceiptOriginalSubtotal, StringFormat={}{0:0.00} TL}"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   TextDecorations="Strikethrough" />
+                                    </StackPanel>
+
+                                    <!-- Ok + Satır indirimi rozeti -->
+                                    <TextBlock Text="&#x2192;"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="12"
+                                               VerticalAlignment="Bottom"
+                                               Margin="6,0,6,0" />
+                                    <Border Padding="7,4"
+                                            Background="#FFF3E0"
+                                            CornerRadius="9"
+                                            VerticalAlignment="Bottom">
+                                        <StackPanel>
+                                            <TextBlock Text="Sat&#x0131;r &#x0130;ndirimi"
+                                                       Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding ReceiptLineDiscountValue, StringFormat=−{0:0.00} TL}"
+                                                       Foreground="{DynamicResource MetroTileOrangeBrush}"
+                                                       FontSize="12"
+                                                       FontWeight="Bold"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,1,0,0" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Ok + Ara toplam -->
+                                    <TextBlock Text="&#x2192;"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="12"
+                                               VerticalAlignment="Bottom"
+                                               Margin="6,0,6,0" />
+                                    <StackPanel VerticalAlignment="Bottom">
+                                        <TextBlock Text="Ara Toplam"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="10" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   Text="{Binding ReceiptDiscountSubtotal, StringFormat={}{0:0.00} TL}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="13"
+                                                   FontWeight="Bold" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Alt satır: Yeni Toplam (belirgin) -->
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Fi&#x015F; indirimi + yuvarlama uygulanacak"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="10"
+                                               VerticalAlignment="Bottom"
+                                               Margin="0,0,0,2" />
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Text="Yeni Toplam"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Right" />
+                                        <TextBlock Margin="0,2,0,0"
+                                                   Text="{Binding ReceiptDiscountPreviewTotal, StringFormat={}{0:0.00} TL}"
+                                                   Foreground="{DynamicResource PrimaryBrush}"
+                                                   FontSize="19"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Right" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+
+                            </Grid><!-- /Wrapper -->
                         </Border>
 
                         <!-- 2 ▸ APPLIED INFO CARD  (lightest / explanatory) -->

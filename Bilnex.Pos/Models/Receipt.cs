@@ -22,6 +22,7 @@ public sealed class Receipt : INotifyPropertyChanged
         Date = DateTime.Now;
         Items = new ObservableCollection<BasketItem>();
         Items.CollectionChanged += OnItemsCollectionChanged;
+        PaymentEntries = new ObservableCollection<PaymentEntry>();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -32,9 +33,20 @@ public sealed class Receipt : INotifyPropertyChanged
 
     public ObservableCollection<BasketItem> Items { get; }
 
+    public ObservableCollection<PaymentEntry> PaymentEntries { get; }
+
+    public bool HasPaymentEntries => PaymentEntries.Count > 0;
+
     public int ItemCount => Items.Sum(x => x.Quantity);
 
     public decimal SubtotalAmount => Items.Sum(x => x.LineTotal);
+
+    /// <summary>Sum of OriginalUnitPrice × Quantity for every item (before any line discounts).</summary>
+    public decimal OriginalSubtotalAmount => Items.Sum(x =>
+        x.OriginalUnitPrice > 0m ? x.OriginalUnitPrice * x.Quantity : x.LineTotal);
+
+    /// <summary>Total savings coming from per-line discounts (OriginalSubtotal – Subtotal).</summary>
+    public decimal LineDiscountAmount => Math.Max(0m, OriginalSubtotalAmount - SubtotalAmount);
 
     public decimal DiscountAmount
     {
@@ -152,7 +164,7 @@ public sealed class Receipt : INotifyPropertyChanged
 
     private void OnBasketItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(BasketItem.Quantity) or nameof(BasketItem.UnitPrice) or nameof(BasketItem.LineTotal))
+        if (e.PropertyName is nameof(BasketItem.Quantity) or nameof(BasketItem.UnitPrice) or nameof(BasketItem.LineTotal) or nameof(BasketItem.OriginalUnitPrice))
         {
             NotifyAmountPropertiesChanged();
         }
@@ -162,6 +174,8 @@ public sealed class Receipt : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(ItemCount));
         OnPropertyChanged(nameof(SubtotalAmount));
+        OnPropertyChanged(nameof(OriginalSubtotalAmount));
+        OnPropertyChanged(nameof(LineDiscountAmount));
         OnPropertyChanged(nameof(DiscountAmount));
         OnPropertyChanged(nameof(RoundAdjustment));
         OnPropertyChanged(nameof(DiscountLabel));

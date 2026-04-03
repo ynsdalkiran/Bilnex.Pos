@@ -1,0 +1,587 @@
+<UserControl x:Class="Bilnex.Pos.Views.LineItemActionDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="880"
+             d:DesignHeight="540">
+
+    <UserControl.Resources>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!--  BASE BUTTON – shared template                             -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <Style x:Key="LineDialogBaseButtonStyle" TargetType="Button">
+            <Setter Property="Foreground"      Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background"      Value="{DynamicResource WindowBackgroundBrush}" />
+            <Setter Property="BorderBrush"     Value="{DynamicResource BorderBrushDark}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding"         Value="0" />
+            <Setter Property="FontSize"        Value="14" />
+            <Setter Property="FontWeight"      Value="SemiBold" />
+            <Setter Property="Cursor"          Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="14"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+                                <Setter TargetName="Root" Property="Opacity"     Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="RenderTransformOrigin" Value="0.5,0.5" />
+                                <Setter TargetName="Root" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.40" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Tab bar button (3 tabs) -->
+        <Style x:Key="LineDialogTabButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource LineDialogBaseButtonStyle}">
+            <Setter Property="Height"   Value="46" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding"  Value="12,0" />
+        </Style>
+
+        <!-- Numeric keypad digit -->
+        <Style x:Key="LineDialogKeypadButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource LineDialogBaseButtonStyle}">
+            <Setter Property="FontSize"   Value="22" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding"    Value="0" />
+        </Style>
+
+        <!-- Success (Uygula) -->
+        <Style x:Key="LineDialogSuccessButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource LineDialogBaseButtonStyle}">
+            <Setter Property="Height"      Value="52" />
+            <Setter Property="FontSize"    Value="16" />
+            <Setter Property="FontWeight"  Value="Bold" />
+            <Setter Property="Foreground"  Value="White" />
+            <Setter Property="Background"  Value="{DynamicResource MetroTileGreenBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource MetroTileGreenBrush}" />
+        </Style>
+
+        <!-- Danger (Vazgeç) -->
+        <Style x:Key="LineDialogDangerButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource LineDialogBaseButtonStyle}">
+            <Setter Property="Height"      Value="46" />
+            <Setter Property="FontSize"    Value="14" />
+            <Setter Property="Foreground"  Value="White" />
+            <Setter Property="Background"  Value="{DynamicResource ShellExitBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ShellExitBackgroundBrush}" />
+            <Setter Property="Padding"     Value="20,0" />
+        </Style>
+
+        <!-- Secondary (Temizle) -->
+        <Style x:Key="LineDialogSecondaryButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource LineDialogBaseButtonStyle}">
+            <Setter Property="Height"   Value="52" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding"  Value="16,0" />
+        </Style>
+
+    </UserControl.Resources>
+
+    <!--
+        Dialog root – 880 × 540
+        Matches the product actions modal visual language but optimised for numpad use.
+    -->
+    <Grid HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Width="880"
+          Height="540"
+          UseLayoutRounding="True"
+          SnapsToDevicePixels="True">
+
+        <Border Padding="16"
+                Background="{DynamicResource ShellContentBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrushDark}"
+                BorderThickness="1"
+                CornerRadius="24">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />   <!-- Header          -->
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="*" />      <!-- Body            -->
+                </Grid.RowDefinitions>
+
+                <!-- ═══════════════════════════════════════════════════ -->
+                <!-- HEADER                                              -->
+                <!-- ═══════════════════════════════════════════════════ -->
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <TextBlock Text="&#x00DC;r&#x00FC;n &#x0130;&#x015F;lemleri"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="22"
+                                   FontWeight="Bold" />
+                        <TextBlock Margin="0,4,0,0"
+                                   Text="{Binding SelectedItem.ProductName}"
+                                   Foreground="{DynamicResource PrimaryBrush}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
+
+                    <Button DockPanel.Dock="Right"
+                            MinWidth="120"
+                            Command="{Binding CloseLineItemActionDialogCommand}"
+                            Style="{StaticResource LineDialogDangerButtonStyle}">
+                        <TextBlock Text="Vazge&#x00E7;" />
+                    </Button>
+                </DockPanel>
+
+                <!-- ═══════════════════════════════════════════════════ -->
+                <!-- BODY  –  left summary  |  right editor             -->
+                <!-- ═══════════════════════════════════════════════════ -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="270" />   <!-- Summary panel -->
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />     <!-- Editor panel  -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ─────────────────────────────────────────────── -->
+                    <!-- LEFT – SUMMARY PANEL                            -->
+                    <!-- ─────────────────────────────────────────────── -->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />   <!-- Product info card     -->
+                            <RowDefinition Height="10" />
+                            <RowDefinition Height="*" />      <!-- Preview card          -->
+                        </Grid.RowDefinitions>
+
+                        <!-- Product info card -->
+                        <Border Padding="16,14"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="10" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="8" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="{Binding SelectedItem.ProductName}"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="17"
+                                           FontWeight="Bold"
+                                           TextTrimming="CharacterEllipsis" />
+
+                                <!-- Original price (shown with strikethrough when discounted) -->
+                                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                                    <TextBlock Text="Birim Fiyat"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,8,0" />
+                                    <!-- Original crossed-out (only when OriginalUnitPrice > UnitPrice) -->
+                                    <TextBlock Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="13"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,6,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedItem.HasLineDiscount}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <Run Text="{Binding SelectedItem.OriginalUnitPrice, StringFormat={}{0:0.00}}" />
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding SelectedItem.UnitPrice, StringFormat={}{0:0.00} TL}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Quantity + LineTotal -->
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Adet"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="11" />
+                                        <TextBlock Text="{Binding SelectedItem.Quantity}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Text="Sat&#x0131;r Toplam"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="11"
+                                                   HorizontalAlignment="Right" />
+                                        <TextBlock Text="{Binding SelectedItem.LineTotal, StringFormat={}{0:0.00} TL}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Right"
+                                                   Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- Preview card -->
+                        <Border Grid.Row="2"
+                                Padding="16,14"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="&#x00D6;nizleme"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11"
+                                           FontWeight="SemiBold" />
+
+                                <!-- New unit price preview -->
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Yeni Birim"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="12"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding LineItemPreviewUnitPrice, StringFormat={}{0:0.00} TL}"
+                                               Foreground="{DynamicResource MetroTileGreenBrush}"
+                                               FontSize="20"
+                                               FontWeight="Bold" />
+                                </Grid>
+
+                                <!-- New line total preview -->
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Yeni Sat&#x0131;r Toplam"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="12"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding LineItemPreviewLineTotal, StringFormat={}{0:0.00} TL}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="20"
+                                               FontWeight="Bold" />
+                                </Grid>
+
+                                <!-- Description -->
+                                <TextBlock Grid.Row="6"
+                                           Text="{Binding LineItemPreviewDescription}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- ─────────────────────────────────────────────── -->
+                    <!-- RIGHT – EDITOR PANEL                            -->
+                    <!--                                                 -->
+                    <!--  Row 0  Tab bar        54 px                   -->
+                    <!--  Row 2  Input display  68 px                   -->
+                    <!--  Row 4  Keypad          *                       -->
+                    <!--  Row 6  Action bar     52 px                   -->
+                    <!-- ─────────────────────────────────────────────── -->
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="54" />    <!-- Tab bar       -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="68" />    <!-- Input display -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="*" />     <!-- Keypad        -->
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="52" />    <!-- Action bar    -->
+                        </Grid.RowDefinitions>
+
+                        <!-- ══ TAB BAR ═══════════════════════════════ -->
+                        <Border Padding="4"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <UniformGrid Rows="1" Columns="3">
+
+                                <!-- Tab: Tutar İndirimi (orange when active) -->
+                                <Button x:Name="DiscountAmountTabButton"
+                                        Command="{Binding SelectLineItemActionModeCommand}"
+                                        CommandParameter="discount-amount">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource LineDialogTabButtonStyle}">
+                                            <Setter Property="Margin" Value="0,0,4,0" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLineItemDiscountAmountModeSelected}" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                    <Setter Property="Foreground"  Value="White" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="Tutar &#x0130;ndirimi" />
+                                </Button>
+
+                                <!-- Tab: Yüzde İndirimi (orange when active) -->
+                                <Button x:Name="DiscountRateTabButton"
+                                        Command="{Binding SelectLineItemActionModeCommand}"
+                                        CommandParameter="discount-rate">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource LineDialogTabButtonStyle}">
+                                            <Setter Property="Margin" Value="0,0,4,0" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLineItemDiscountRateModeSelected}" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                    <Setter Property="Foreground"  Value="White" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="Y&#x00FC;zde &#x0130;ndirimi" />
+                                </Button>
+
+                                <!-- Tab: Fiyat Değiştir (blue when active) -->
+                                <Button x:Name="PriceChangeTabButton"
+                                        Command="{Binding SelectLineItemActionModeCommand}"
+                                        CommandParameter="price-change">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource LineDialogTabButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLineItemPriceChangeModeSelected}" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource MetroTileBlueBrush}" />
+                                                    <Setter Property="Foreground"  Value="White" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <TextBlock Text="Fiyat De&#x011F;i&#x015F;tir" />
+                                </Button>
+
+                            </UniformGrid>
+                        </Border>
+
+                        <!-- ══ INPUT DISPLAY CARD ════════════════════ -->
+                        <Border Grid.Row="2"
+                                Padding="16,10"
+                                Background="{DynamicResource WindowBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushDark}"
+                                BorderThickness="1"
+                                CornerRadius="18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding LineItemActionInputLabel}"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="12" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="{Binding LineItemActionInputText}"
+                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               FontSize="24"
+                                               FontWeight="Bold" />
+                                </StackPanel>
+
+                                <!-- Suffix badge (TL / %) -->
+                                <Border Grid.Column="1"
+                                        Padding="14,8"
+                                        Background="{DynamicResource ShellContentBackgroundBrush}"
+                                        CornerRadius="14">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{DynamicResource ShellContentBackgroundBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLineItemDiscountAmountModeSelected}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsLineItemDiscountRateModeSelected}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource MetroTileOrangeBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsLineItemPriceChangeModeSelected}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource MetroTileBlueBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding LineItemActionInputSuffix}"
+                                               Foreground="White"
+                                               FontSize="15"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- ══ NUMERIC KEYPAD ═════════════════════════ -->
+                        <UniformGrid Grid.Row="4"
+                                     x:Name="NumpadGrid"
+                                     Rows="4"
+                                     Columns="3">
+                            <Button x:Name="NumpadFirstButton"
+                                    Margin="0,0,6,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="7"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="7" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="8"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="8" />
+                            <Button Margin="0,0,0,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="9"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="9" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="4"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="4" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="5"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="5" />
+                            <Button Margin="0,0,0,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="6"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="6" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="1"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="1" />
+                            <Button Margin="0,0,6,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="2"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="2" />
+                            <Button Margin="0,0,0,6"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="3"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="3" />
+                            <Button Margin="0,0,6,0"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter=","
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="," />
+                            <Button Margin="0,0,6,0"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="0"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="0" />
+                            <Button Margin="0,0,0,0"
+                                    Command="{Binding AppendLineItemActionNumpadCommand}"
+                                    CommandParameter="00"
+                                    Style="{StaticResource LineDialogKeypadButtonStyle}"
+                                    Content="00" />
+                        </UniformGrid>
+
+                        <!-- ══ BOTTOM ACTION BAR ══════════════════════ -->
+                        <Grid Grid.Row="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="1.6*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0"
+                                    Command="{Binding ClearLineItemActionNumpadCommand}"
+                                    Style="{StaticResource LineDialogSecondaryButtonStyle}">
+                                <TextBlock Text="Temizle" />
+                            </Button>
+
+                            <Button Grid.Column="2"
+                                    Command="{Binding BackspaceLineItemActionNumpadCommand}"
+                                    Style="{StaticResource LineDialogSecondaryButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE750;"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               FontSize="15"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,6,0" />
+                                    <TextBlock Text="Sil" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Grid.Column="4"
+                                    Command="{Binding ApplyLineItemActionCommand}"
+                                    Style="{StaticResource LineDialogSuccessButtonStyle}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE73E;"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               FontSize="15"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,8,0" />
+                                    <TextBlock Text="Uygula" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                    </Grid>
+                    <!-- End RightPanel -->
+
+                </Grid>
+                <!-- End Body -->
+
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

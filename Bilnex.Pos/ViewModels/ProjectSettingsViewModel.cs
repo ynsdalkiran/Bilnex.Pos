@@ -40,6 +40,8 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     private string _quickProductMinButtonHeight;
     private string _quickProductButtonFontSize;
     private string _quickProductCategoryColumns;
+    private string _discountDisplayMode;
+    private string _basketPosition;
     private string _statusMessage = "Kaydetmek için tutarları virgül ile ayır.";
 
     public ProjectSettingsViewModel()
@@ -61,6 +63,8 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         _quickProductMinButtonHeight = _settingsService.QuickProductMinButtonHeight.ToString(CultureInfo.InvariantCulture);
         _quickProductButtonFontSize = _settingsService.QuickProductButtonFontSize.ToString(CultureInfo.InvariantCulture);
         _quickProductCategoryColumns = _settingsService.QuickProductCategoryColumns.ToString(CultureInfo.InvariantCulture);
+        _discountDisplayMode = _settingsService.DiscountDisplayMode;
+        _basketPosition = _settingsService.BasketPosition;
 
         SaveQuickAmountsCommand = new RelayCommand(SaveQuickAmounts);
         ResetQuickAmountsCommand = new RelayCommand(ResetQuickAmounts);
@@ -74,6 +78,8 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
         ResetLabelPrintSettingsCommand = new RelayCommand(ResetLabelPrintSettings);
         SaveQuickProductLayoutCommand = new RelayCommand(SaveQuickProductLayout);
         ResetQuickProductLayoutCommand = new RelayCommand(ResetQuickProductLayout);
+        SavePosLayoutCommand = new RelayCommand(SavePosLayoutSettings);
+        ResetPosLayoutCommand = new RelayCommand(ResetPosLayoutSettings);
     }
 
     public IEnumerable<QuickAmountOption> QuickAmounts => _settingsService.QuickAmounts;
@@ -237,6 +243,90 @@ public sealed class ProjectSettingsViewModel : ViewModelBase
     public ICommand SaveQuickProductLayoutCommand { get; }
 
     public ICommand ResetQuickProductLayoutCommand { get; }
+
+    public ICommand SavePosLayoutCommand { get; }
+
+    public ICommand ResetPosLayoutCommand { get; }
+
+    public bool IsDiscountDisplayStrip
+    {
+        get => _discountDisplayMode == "Strip";
+        set
+        {
+            if (value)
+            {
+                _discountDisplayMode = "Strip";
+                OnPropertyChanged(nameof(IsDiscountDisplayStrip));
+                OnPropertyChanged(nameof(IsDiscountDisplayTotalCard));
+            }
+        }
+    }
+
+    public bool IsDiscountDisplayTotalCard
+    {
+        get => _discountDisplayMode == "TotalCard";
+        set
+        {
+            if (value)
+            {
+                _discountDisplayMode = "TotalCard";
+                OnPropertyChanged(nameof(IsDiscountDisplayStrip));
+                OnPropertyChanged(nameof(IsDiscountDisplayTotalCard));
+            }
+        }
+    }
+
+    public bool IsBasketLeft
+    {
+        get => _basketPosition == "Left";
+        set
+        {
+            if (value)
+            {
+                _basketPosition = "Left";
+                OnPropertyChanged(nameof(IsBasketLeft));
+                OnPropertyChanged(nameof(IsBasketRight));
+            }
+        }
+    }
+
+    public bool IsBasketRight
+    {
+        get => _basketPosition == "Right";
+        set
+        {
+            if (value)
+            {
+                _basketPosition = "Right";
+                OnPropertyChanged(nameof(IsBasketLeft));
+                OnPropertyChanged(nameof(IsBasketRight));
+            }
+        }
+    }
+
+    private void SavePosLayoutSettings()
+    {
+        _settingsService.UpdatePosLayoutSettings(_discountDisplayMode, _basketPosition);
+        StatusMessage = "POS görünüm ayarları kaydedildi.";
+        AppDialogService.ShowSaved("POS görünüm ayarları");
+    }
+
+    private void ResetPosLayoutSettings()
+    {
+        if (!AppDialogService.ShowResetConfirmation("POS görünüm ayarları"))
+        {
+            return;
+        }
+
+        _settingsService.ResetPosLayoutSettings();
+        _discountDisplayMode = _settingsService.DiscountDisplayMode;
+        _basketPosition = _settingsService.BasketPosition;
+        OnPropertyChanged(nameof(IsDiscountDisplayStrip));
+        OnPropertyChanged(nameof(IsDiscountDisplayTotalCard));
+        OnPropertyChanged(nameof(IsBasketLeft));
+        OnPropertyChanged(nameof(IsBasketRight));
+        StatusMessage = "POS görünüm ayarları varsayılana döndü.";
+    }
 
     private void SaveQuickAmounts()
     {

@@ -32,6 +32,10 @@ public sealed class PosViewModel : ViewModelBase
     private const string ReceiptEditorModePreset = "preset";
     private const string ReceiptEditorModeRound = "round";
 
+    private const string LineItemDiscountAmountMode = "discount-amount";
+    private const string LineItemDiscountRateMode = "discount-rate";
+    private const string LineItemPriceChangeMode = "price-change";
+
     private readonly Dictionary<string, decimal> _productPrices = new()
     {
         ["Su"] = 10m,
@@ -81,8 +85,13 @@ public sealed class PosViewModel : ViewModelBase
     private bool _isHeldSalesScreenOpen;
     private bool _isReceiptHistoryScreenOpen;
     private bool _isProductActionsModalOpen;
+    private bool _isLineItemActionDialogOpen;
+    private string _lineItemActionMode = LineItemDiscountAmountMode;
+    private string _lineItemActionInputText = string.Empty;
     private string _paymentMethod = "Cash";
     private string _receivedAmountText = string.Empty;
+    private string _paymentInputText = string.Empty;
+    private readonly ObservableCollection<PaymentEntry> _paymentEntries = new();
     private string _receiptDiscountRateText = string.Empty;
     private string _receiptDiscountAmountText = string.Empty;
     private string _receiptRoundTargetText = string.Empty;
@@ -255,6 +264,25 @@ public sealed class PosViewModel : ViewModelBase
             parameter => parameter is string && IsCashPayment);
         CompletePaymentCommand = new RelayCommand(ConfirmPayment, CanConfirmPayment);
         CancelPaymentCommand = new RelayCommand(CancelPaymentScreen);
+        AppendPaymentNumpadCommand = new RelayCommand(
+            parameter => { if (parameter is string digit) AppendPaymentInput(digit); },
+            parameter => IsPaymentScreenOpen);
+        BackspacePaymentNumpadCommand = new RelayCommand(BackspacePaymentInput,
+            () => IsPaymentScreenOpen && PaymentInputText.Length > 0);
+        ClearPaymentInputCommand = new RelayCommand(
+            () => PaymentInputText = string.Empty,
+            () => IsPaymentScreenOpen);
+        AddPaymentEntryCommand = new RelayCommand(AddPaymentEntry,
+            () => IsPaymentScreenOpen && PaymentInputAmount > 0m);
+        SetPaymentQuickAmountCommand = new RelayCommand(
+            parameter => { if (parameter is string key) SetPaymentQuickAmount(key); },
+            parameter => IsPaymentScreenOpen);
+        RemovePaymentEntryCommand = new RelayCommand(
+            parameter => { if (parameter is PaymentEntry entry) RemovePaymentEntry(entry); },
+            parameter => IsPaymentScreenOpen);
+        EditPaymentEntryCommand = new RelayCommand(
+            parameter => { if (parameter is PaymentEntry entry) EditPaymentEntry(entry); },
+            parameter => IsPaymentScreenOpen);
         SuspendSaleCommand = new RelayCommand(SuspendCurrentSale, () => BasketItems.Count > 0);
         OpenHeldSalesCommand = new RelayCommand(OpenHeldSalesScreen, () => HeldSales.Count > 0);
         CloseHeldSalesCommand = new RelayCommand(CloseHeldSalesScreen);
@@ -316,6 +344,37 @@ public sealed class PosViewModel : ViewModelBase
             parameter => parameter is PosActionItem);
         OpenProductActionsModalCommand = new RelayCommand(OpenProductActionsModal, () => SelectedItem is not null);
         CloseProductActionsModalCommand = new RelayCommand(CloseProductActionsModal);
+        OpenLineItemActionDialogCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string mode)
+                {
+                    OpenLineItemActionDialog(mode);
+                }
+            },
+            parameter => parameter is string && SelectedItem is not null);
+        CloseLineItemActionDialogCommand = new RelayCommand(CloseLineItemActionDialog);
+        ApplyLineItemActionCommand = new RelayCommand(ApplyLineItemAction, CanApplyLineItemAction);
+        SelectLineItemActionModeCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string mode)
+                {
+                    SelectLineItemActionMode(mode);
+                }
+            },
+            parameter => parameter is string);
+        AppendLineItemActionNumpadCommand = new RelayCommand(
+            parameter =>
+            {
+                if (parameter is string digit)
+                {
+                    AppendLineItemActionInput(digit);
+                }
+            },
+            parameter => parameter is string);
+        BackspaceLineItemActionNumpadCommand = new RelayCommand(BackspaceLineItemActionInput);
+        ClearLineItemActionNumpadCommand = new RelayCommand(ClearLineItemActionInput);
         OpenReceiptDiscountCommand = new RelayCommand(OpenReceiptDiscountScreen, () => BasketItems.Count > 0);
         CloseReceiptDiscountCommand = new RelayCommand(CloseReceiptDiscountScreen);
         ApplyReceiptDiscountCommand = new RelayCommand(ApplyReceiptDiscount, () => BasketItems.Count > 0);
@@ -417,6 +476,11 @@ public sealed class PosViewModel : ViewModelBase
             OnPropertyChanged(nameof(BasketItems));
             OnPropertyChanged(nameof(ReceiptNo));
             OnPropertyChanged(nameof(ReceiptDiscountSubtotal));
+            OnPropertyChanged(nameof(ReceiptOriginalSubtotal));
+            OnPropertyChanged(nameof(ReceiptLineDiscountValue));
+            OnPropertyChanged(nameof(HasReceiptLineDiscount));
+            OnPropertyChanged(nameof(ReceiptLineDiscountText));
+            OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
             OnPropertyChanged(nameof(ReceiptDiscountValue));
             OnPropertyChanged(nameof(ReceiptDiscountRoundAdjustment));
             OnPropertyChanged(nameof(ReceiptDiscountPreviewTotal));
@@ -435,6 +499,12 @@ public sealed class PosViewModel : ViewModelBase
     public ObservableCollection<QuickProductCategoryItem> QuickProductCategories { get; }
 
     public int QuickProductColumns => _settingsService.QuickProductColumns;
+
+    public bool IsDiscountDisplayStrip => _settingsService.DiscountDisplayMode == "Strip";
+
+    public bool IsDiscountDisplayTotalCard => _settingsService.DiscountDisplayMode == "TotalCard";
+
+    public bool IsBasketRight => _settingsService.BasketPosition == "Right";
 
     public int QuickProductMinButtonHeight => _settingsService.QuickProductMinButtonHeight;
 
@@ -496,6 +566,20 @@ public sealed class PosViewModel : ViewModelBase
 
     public ICommand CancelPaymentCommand { get; }
 
+    public ICommand AppendPaymentNumpadCommand { get; }
+
+    public ICommand BackspacePaymentNumpadCommand { get; }
+
+    public ICommand ClearPaymentInputCommand { get; }
+
+    public ICommand AddPaymentEntryCommand { get; }
+
+    public ICommand SetPaymentQuickAmountCommand { get; }
+
+    public ICommand RemovePaymentEntryCommand { get; }
+
+    public ICommand EditPaymentEntryCommand { get; }
+
     public ICommand SuspendSaleCommand { get; }
 
     public ICommand OpenHeldSalesCommand { get; }
@@ -521,6 +605,20 @@ public sealed class PosViewModel : ViewModelBase
     public ICommand OpenProductActionsModalCommand { get; }
 
     public ICommand CloseProductActionsModalCommand { get; }
+
+    public ICommand OpenLineItemActionDialogCommand { get; }
+
+    public ICommand CloseLineItemActionDialogCommand { get; }
+
+    public ICommand ApplyLineItemActionCommand { get; }
+
+    public ICommand SelectLineItemActionModeCommand { get; }
+
+    public ICommand AppendLineItemActionNumpadCommand { get; }
+
+    public ICommand BackspaceLineItemActionNumpadCommand { get; }
+
+    public ICommand ClearLineItemActionNumpadCommand { get; }
 
     public ICommand OpenReceiptDiscountCommand { get; }
 
@@ -557,6 +655,8 @@ public sealed class PosViewModel : ViewModelBase
             {
                 RefreshActionItemStates();
                 ((RelayCommand)OpenProductActionsModalCommand).RaiseCanExecuteChanged();
+                ((RelayCommand)OpenLineItemActionDialogCommand).RaiseCanExecuteChanged();
+                NotifyLineItemActionPreviewChanged();
             }
         }
     }
@@ -739,17 +839,27 @@ public sealed class PosViewModel : ViewModelBase
 
     public bool IsReceiptRoundModeSelected => ReceiptDiscountEditorMode == ReceiptEditorModeRound;
 
-    public decimal ReceiptLineDiscountValue => 0m;
+    /// <summary>Total line-level discount coming from per-item price reductions.</summary>
+    public decimal ReceiptLineDiscountValue => CurrentReceipt.LineDiscountAmount;
 
-    public string ReceiptLineDiscountText => ReceiptLineDiscountValue > 0m
+    /// <summary>Original subtotal before any line discounts are applied.</summary>
+    public decimal ReceiptOriginalSubtotal => CurrentReceipt.OriginalSubtotalAmount;
+
+    public bool HasReceiptLineDiscount => ReceiptLineDiscountValue > 0m;
+
+    public string ReceiptLineDiscountText => HasReceiptLineDiscount
         ? $"{ReceiptLineDiscountValue:0.00} TL"
         : "Yok";
 
-    public string ReceiptLineDiscountDescription => ReceiptLineDiscountValue > 0m
-        ? "Satırlardan gelen indirim"
-        : "Bu satışta satır indirimi bulunmuyor";
+    public string ReceiptLineDiscountDescription => HasReceiptLineDiscount
+        ? $"{BasketItems.Count(x => x.HasLineDiscount)} satırda toplam {ReceiptLineDiscountValue:0.00} TL indirim uygulandı."
+        : "Bu satışta satır indirimi bulunmuyor.";
 
     public bool HasReceiptDiscount => ReceiptDiscountValue > 0m;
+
+    public bool HasAnyDiscount => HasReceiptLineDiscount || HasReceiptDiscount || HasReceiptRoundAdjustment;
+
+    public decimal TotalSavingsAmount => ReceiptLineDiscountValue + ReceiptDiscountValue;
 
     public string ReceiptDiscountValueText => HasReceiptDiscount
         ? $"{ReceiptDiscountValue:0.00} TL"
@@ -869,6 +979,108 @@ public sealed class PosViewModel : ViewModelBase
         private set => SetProperty(ref _isProductActionsModalOpen, value);
     }
 
+    public bool IsLineItemActionDialogOpen
+    {
+        get => _isLineItemActionDialogOpen;
+        private set => SetProperty(ref _isLineItemActionDialogOpen, value);
+    }
+
+    public string LineItemActionMode
+    {
+        get => _lineItemActionMode;
+        private set
+        {
+            if (SetProperty(ref _lineItemActionMode, value))
+            {
+                OnPropertyChanged(nameof(IsLineItemDiscountAmountModeSelected));
+                OnPropertyChanged(nameof(IsLineItemDiscountRateModeSelected));
+                OnPropertyChanged(nameof(IsLineItemPriceChangeModeSelected));
+                OnPropertyChanged(nameof(LineItemActionInputLabel));
+                OnPropertyChanged(nameof(LineItemActionInputSuffix));
+            }
+        }
+    }
+
+    public string LineItemActionInputText
+    {
+        get => _lineItemActionInputText;
+        private set
+        {
+            if (SetProperty(ref _lineItemActionInputText, value))
+            {
+                NotifyLineItemActionPreviewChanged();
+            }
+        }
+    }
+
+    public bool IsLineItemDiscountAmountModeSelected => LineItemActionMode == LineItemDiscountAmountMode;
+
+    public bool IsLineItemDiscountRateModeSelected => LineItemActionMode == LineItemDiscountRateMode;
+
+    public bool IsLineItemPriceChangeModeSelected => LineItemActionMode == LineItemPriceChangeMode;
+
+    public string LineItemActionInputLabel => LineItemActionMode switch
+    {
+        LineItemDiscountAmountMode => "İndirim Tutarı (TL / birim)",
+        LineItemDiscountRateMode => "İndirim Oranı (%)",
+        _ => "Yeni Birim Fiyat (TL)"
+    };
+
+    public string LineItemActionInputSuffix => LineItemActionMode == LineItemDiscountRateMode ? "%" : "TL";
+
+    public decimal LineItemPreviewUnitPrice
+    {
+        get
+        {
+            if (SelectedItem is null) return 0m;
+
+            var input = ParseAmount(LineItemActionInputText);
+            var originalPrice = SelectedItem.OriginalUnitPrice > 0m ? SelectedItem.OriginalUnitPrice : SelectedItem.UnitPrice;
+
+            return LineItemActionMode switch
+            {
+                LineItemDiscountAmountMode => Math.Max(0m, decimal.Round(originalPrice - input, 2)),
+                LineItemDiscountRateMode   => Math.Max(0m, decimal.Round(originalPrice * (1m - input / 100m), 2)),
+                _                         => input > 0m ? decimal.Round(input, 2) : SelectedItem.UnitPrice
+            };
+        }
+    }
+
+    public decimal LineItemPreviewLineTotal => SelectedItem is null
+        ? 0m
+        : LineItemPreviewUnitPrice * SelectedItem.Quantity;
+
+    public decimal LineItemPreviewDelta
+    {
+        get
+        {
+            if (SelectedItem is null) return 0m;
+            var originalPrice = SelectedItem.OriginalUnitPrice > 0m ? SelectedItem.OriginalUnitPrice : SelectedItem.UnitPrice;
+            return decimal.Round((originalPrice - LineItemPreviewUnitPrice) * SelectedItem.Quantity, 2);
+        }
+    }
+
+    public string LineItemPreviewDescription
+    {
+        get
+        {
+            if (SelectedItem is null) return string.Empty;
+            var preview = LineItemPreviewUnitPrice;
+            var delta = LineItemPreviewDelta;
+
+            if (LineItemActionMode == LineItemPriceChangeMode)
+            {
+                return delta != 0m
+                    ? $"Yeni birim fiyat: {preview:0.00} TL  ({(delta > 0 ? "-" : "+")}{Math.Abs(delta):0.00} TL)"
+                    : $"Yeni birim fiyat: {preview:0.00} TL";
+            }
+
+            return delta > 0m
+                ? $"Toplam indirim: {delta:0.00} TL · Yeni birim: {preview:0.00} TL"
+                : "Girilen değer indirim oluşturmuyor";
+        }
+    }
+
     public IEnumerable<PosActionItem> ProductActionItems =>
         _allActionItems.Where(x => x.TabKey == ProductActionsTabKey);
 
@@ -916,6 +1128,37 @@ public sealed class PosViewModel : ViewModelBase
     public bool IsCashPayment => PaymentMethod == "Cash";
 
     public bool IsCardPayment => PaymentMethod == "Card";
+
+    public ObservableCollection<PaymentEntry> PaymentEntries => _paymentEntries;
+
+    public string PaymentInputText
+    {
+        get => _paymentInputText;
+        private set
+        {
+            if (SetProperty(ref _paymentInputText, value))
+            {
+                OnPropertyChanged(nameof(PaymentInputAmount));
+                RaiseCommandStates();
+            }
+        }
+    }
+
+    public decimal PaymentInputAmount => ParseAmount(PaymentInputText);
+
+    public decimal PaymentRemainingAmount => Math.Max(0m, CurrentReceipt.TotalAmount - CurrentReceipt.PaidAmount);
+
+    public decimal PaymentChangeAmount => Math.Max(0m, CurrentReceipt.PaidAmount - CurrentReceipt.TotalAmount);
+
+    public bool HasPaymentRemaining => PaymentRemainingAmount > 0m;
+
+    public bool HasPaymentChange => PaymentChangeAmount > 0m;
+
+    public bool HasPaymentEntries => _paymentEntries.Count > 0;
+
+    public IEnumerable<QuickAmountOption> PaymentQuickAmounts =>
+        _settingsService.QuickAmounts.Where(x => x.Value != "TOTAL")
+            .Concat([new QuickAmountOption("Kalan Tümü", "REMAINING")]);
 
     public PosState CurrentState => _stateManager.CurrentState;
 
@@ -1040,9 +1283,14 @@ public sealed class PosViewModel : ViewModelBase
 
     private void OnCurrentReceiptPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(Receipt.SubtotalAmount) or nameof(Receipt.TotalAmount) or nameof(Receipt.DiscountAmount) or nameof(Receipt.RoundAdjustment) or nameof(Receipt.CashAmount) or nameof(Receipt.CardAmount) or nameof(Receipt.ChangeAmount) or nameof(Receipt.IsPaid))
+        if (e.PropertyName is nameof(Receipt.SubtotalAmount) or nameof(Receipt.TotalAmount) or nameof(Receipt.DiscountAmount) or nameof(Receipt.RoundAdjustment) or nameof(Receipt.CashAmount) or nameof(Receipt.CardAmount) or nameof(Receipt.ChangeAmount) or nameof(Receipt.IsPaid) or nameof(Receipt.LineDiscountAmount) or nameof(Receipt.OriginalSubtotalAmount))
         {
             OnPropertyChanged(nameof(ReceiptDiscountSubtotal));
+            OnPropertyChanged(nameof(ReceiptOriginalSubtotal));
+            OnPropertyChanged(nameof(ReceiptLineDiscountValue));
+            OnPropertyChanged(nameof(HasReceiptLineDiscount));
+            OnPropertyChanged(nameof(ReceiptLineDiscountText));
+            OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
             OnPropertyChanged(nameof(ReceiptDiscountValue));
             OnPropertyChanged(nameof(ReceiptDiscountRoundAdjustment));
             OnPropertyChanged(nameof(ReceiptDiscountPreviewTotal));
@@ -1050,6 +1298,8 @@ public sealed class PosViewModel : ViewModelBase
             OnPropertyChanged(nameof(ItemCount));
             OnPropertyChanged(nameof(ChangeAmount));
             OnPropertyChanged(nameof(ChangeAmountText));
+            OnPropertyChanged(nameof(HasAnyDiscount));
+            OnPropertyChanged(nameof(TotalSavingsAmount));
             RaiseCommandStates();
         }
     }
@@ -1059,9 +1309,16 @@ public sealed class PosViewModel : ViewModelBase
         OnPropertyChanged(nameof(BasketItems));
         OnPropertyChanged(nameof(ItemCount));
         OnPropertyChanged(nameof(ReceiptDiscountSubtotal));
+        OnPropertyChanged(nameof(ReceiptOriginalSubtotal));
+        OnPropertyChanged(nameof(ReceiptLineDiscountValue));
+        OnPropertyChanged(nameof(HasReceiptLineDiscount));
+        OnPropertyChanged(nameof(ReceiptLineDiscountText));
+        OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
         OnPropertyChanged(nameof(TotalAmount));
         OnPropertyChanged(nameof(ChangeAmount));
         OnPropertyChanged(nameof(ChangeAmountText));
+        OnPropertyChanged(nameof(HasAnyDiscount));
+        OnPropertyChanged(nameof(TotalSavingsAmount));
         RaiseCommandStates();
     }
 
@@ -1252,6 +1509,28 @@ public sealed class PosViewModel : ViewModelBase
             case "receipt-history":
                 OpenReceiptHistoryScreen();
                 return;
+            case "line-discount-fixed":
+                if (SelectedItem is not null)
+                {
+                    OpenLineItemActionDialog(LineItemDiscountAmountMode);
+                }
+                return;
+            case "line-discount-rate":
+                if (SelectedItem is not null)
+                {
+                    OpenLineItemActionDialog(LineItemDiscountRateMode);
+                }
+                return;
+            case "line-price-change":
+                if (SelectedItem is not null)
+                {
+                    OpenLineItemActionDialog(LineItemPriceChangeMode);
+                }
+                return;
+            case "line-quantity":
+                // Miktar değişikliği modal üzerindeki +/- kontrollerinden yapılır.
+                OpenProductActionsModal();
+                return;
             case "line-remove":
                 if (SelectedItem is not null)
                 {
@@ -1259,7 +1538,7 @@ public sealed class PosViewModel : ViewModelBase
                 }
                 return;
             default:
-                AppDialogService.ShowInfo(actionItem.Title, $"{actionItem.Title} ekranı bir sonraki adımda detaylı olarak bağlanacak.");
+                AppDialogService.ShowInfo(actionItem.Title, $"{actionItem.Title} yakında kullanıma açılacak.");
                 return;
         }
     }
@@ -1278,6 +1557,112 @@ public sealed class PosViewModel : ViewModelBase
     private void CloseProductActionsModal()
     {
         IsProductActionsModalOpen = false;
+    }
+
+    private void OpenLineItemActionDialog(string mode)
+    {
+        if (SelectedItem is null) return;
+
+        IsProductActionsModalOpen = false;
+        LineItemActionMode = mode;
+        _lineItemActionInputText = string.Empty;
+        OnPropertyChanged(nameof(LineItemActionInputText));
+        NotifyLineItemActionPreviewChanged();
+        IsLineItemActionDialogOpen = true;
+        ((RelayCommand)ApplyLineItemActionCommand).RaiseCanExecuteChanged();
+    }
+
+    private void CloseLineItemActionDialog()
+    {
+        IsLineItemActionDialogOpen = false;
+    }
+
+    private bool CanApplyLineItemAction()
+    {
+        if (SelectedItem is null || !IsLineItemActionDialogOpen) return false;
+        if (LineItemActionMode == LineItemPriceChangeMode)
+        {
+            return LineItemPreviewUnitPrice > 0m;
+        }
+        return LineItemPreviewDelta > 0m;
+    }
+
+    private void ApplyLineItemAction()
+    {
+        if (SelectedItem is null) return;
+
+        var newUnitPrice = LineItemPreviewUnitPrice;
+        var item = SelectedItem;
+
+        if (LineItemActionMode == LineItemPriceChangeMode)
+        {
+            // Price change: reset origin so the new price becomes the baseline
+            item.UnitPrice = newUnitPrice;
+            item.OriginalUnitPrice = newUnitPrice;
+            AppDialogService.ShowToastSuccess(
+                "Fiyat Değiştirildi",
+                $"{item.ProductName} için yeni birim fiyat: {newUnitPrice:0.00} TL",
+                3);
+        }
+        else
+        {
+            // Discount: keep OriginalUnitPrice, just lower UnitPrice
+            if (item.OriginalUnitPrice == 0m)
+                item.OriginalUnitPrice = item.UnitPrice;
+            item.UnitPrice = newUnitPrice;
+            var delta = LineItemPreviewDelta;
+            AppDialogService.ShowToastSuccess(
+                "İndirim Uygulandı",
+                $"{item.ProductName}: {delta:0.00} TL indirim · Yeni birim: {newUnitPrice:0.00} TL",
+                3);
+        }
+
+        IsLineItemActionDialogOpen = false;
+        RefreshDisplayValues();
+    }
+
+    private void SelectLineItemActionMode(string mode)
+    {
+        LineItemActionMode = mode;
+        _lineItemActionInputText = string.Empty;
+        OnPropertyChanged(nameof(LineItemActionInputText));
+        NotifyLineItemActionPreviewChanged();
+        ((RelayCommand)ApplyLineItemActionCommand).RaiseCanExecuteChanged();
+    }
+
+    private void AppendLineItemActionInput(string value)
+    {
+        var current = LineItemActionInputText;
+
+        if (value == "," || value == ".")
+        {
+            if (current.Contains(',') || current.Contains('.')) return;
+            LineItemActionInputText = current + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+            return;
+        }
+
+        LineItemActionInputText = current + value;
+    }
+
+    private void BackspaceLineItemActionInput()
+    {
+        var current = LineItemActionInputText;
+        if (string.IsNullOrEmpty(current)) return;
+        LineItemActionInputText = current[..^1];
+    }
+
+    private void ClearLineItemActionInput()
+    {
+        LineItemActionInputText = string.Empty;
+    }
+
+    private void NotifyLineItemActionPreviewChanged()
+    {
+        OnPropertyChanged(nameof(LineItemPreviewUnitPrice));
+        OnPropertyChanged(nameof(LineItemPreviewLineTotal));
+        OnPropertyChanged(nameof(LineItemPreviewDelta));
+        OnPropertyChanged(nameof(LineItemPreviewDescription));
+        ((RelayCommand)ApplyLineItemActionCommand).RaiseCanExecuteChanged();
     }
 
     private void OpenReceiptDiscountScreen()
@@ -1799,14 +2184,16 @@ public sealed class PosViewModel : ViewModelBase
     {
         RefreshReceiptRoundTargetPresets();
         OnPropertyChanged(nameof(ReceiptDiscountSubtotal));
+        OnPropertyChanged(nameof(ReceiptOriginalSubtotal));
+        OnPropertyChanged(nameof(ReceiptLineDiscountValue));
+        OnPropertyChanged(nameof(HasReceiptLineDiscount));
+        OnPropertyChanged(nameof(ReceiptLineDiscountText));
+        OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
         OnPropertyChanged(nameof(ReceiptDiscountValue));
         OnPropertyChanged(nameof(ReceiptDiscountRoundAdjustment));
         OnPropertyChanged(nameof(ReceiptDiscountPreviewTotal));
         OnPropertyChanged(nameof(ReceiptRoundTargetText));
         OnPropertyChanged(nameof(ReceiptRoundTargetTextDisplay));
-        OnPropertyChanged(nameof(ReceiptLineDiscountValue));
-        OnPropertyChanged(nameof(ReceiptLineDiscountText));
-        OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
         OnPropertyChanged(nameof(HasReceiptDiscount));
         OnPropertyChanged(nameof(ReceiptDiscountValueText));
         OnPropertyChanged(nameof(ReceiptDiscountDescription));
@@ -1846,11 +2233,35 @@ public sealed class PosViewModel : ViewModelBase
 
     private void OpenPaymentScreen(string paymentType)
     {
+        // Preserve any pre-loaded entries (e.g. restored from receipt history for editing)
+        var preloaded = _paymentEntries.ToList();
+
+        _paymentEntries.Clear();
         IsHeldSalesScreenOpen = false;
         IsReceiptHistoryScreenOpen = false;
         IsPaymentScreenOpen = true;
+        CurrentReceipt.ResetPayments();
         StartPayment();
-        SelectPaymentMethod(paymentType);
+        PaymentMethod = paymentType;
+
+        // Restore pre-loaded entries so they appear in the payment dialog
+        foreach (var entry in preloaded)
+            _paymentEntries.Add(entry);
+        if (preloaded.Count > 0)
+            UpdateReceiptPaymentsFromEntries();
+
+        OnPropertyChanged(nameof(IsCashPayment));
+        OnPropertyChanged(nameof(IsCardPayment));
+        OnPropertyChanged(nameof(PaymentMethodTitle));
+        OnPropertyChanged(nameof(HasPaymentEntries));
+
+        // If already partially/fully paid, set input to remaining; else empty
+        var remaining = PaymentRemainingAmount;
+        PaymentInputText = remaining > 0m
+            ? remaining.ToString("0.00", CultureInfo.InvariantCulture)
+            : string.Empty;
+
+        NotifyPaymentDisplayChanged();
         RaiseCommandStates();
     }
 
@@ -1869,20 +2280,9 @@ public sealed class PosViewModel : ViewModelBase
     private void SelectPaymentMethod(string paymentType)
     {
         PaymentMethod = paymentType;
-
-        if (paymentType == "Cash")
-        {
-            if (string.IsNullOrWhiteSpace(ReceivedAmountText))
-            {
-                ReceivedAmountText = CurrentReceipt.TotalAmount.ToString("0.00", CultureInfo.InvariantCulture);
-            }
-        }
-        else
-        {
-            ReceivedAmountText = string.Empty;
-        }
-
-        UpdateReceiptPaymentsPreview();
+        OnPropertyChanged(nameof(IsCashPayment));
+        OnPropertyChanged(nameof(IsCardPayment));
+        OnPropertyChanged(nameof(PaymentMethodTitle));
     }
 
     private void SetQuickReceivedAmount(string amountKey)
@@ -1918,15 +2318,115 @@ public sealed class PosViewModel : ViewModelBase
         }
     }
 
+    private void AppendPaymentInput(string digit)
+    {
+        if (digit == ",")
+        {
+            if (!PaymentInputText.Contains(','))
+                PaymentInputText = PaymentInputText.Length == 0 ? "0," : PaymentInputText + ",";
+            return;
+        }
+
+        if (digit == "00")
+        {
+            if (PaymentInputText is "" or "0") return;
+            PaymentInputText += "00";
+            return;
+        }
+
+        if (PaymentInputText is "" or "0")
+        {
+            PaymentInputText = digit;
+            return;
+        }
+
+        PaymentInputText += digit;
+    }
+
+    private void BackspacePaymentInput()
+    {
+        if (PaymentInputText.Length > 0)
+            PaymentInputText = PaymentInputText[..^1];
+    }
+
+    private void AddPaymentEntry()
+    {
+        var amount = PaymentInputAmount;
+        if (amount <= 0m) return;
+
+        var methodTitle = PaymentMethods.FirstOrDefault(x => x.Key == PaymentMethod)?.Title ?? PaymentMethod;
+        _paymentEntries.Add(new PaymentEntry(PaymentMethod, methodTitle, amount));
+        OnPropertyChanged(nameof(HasPaymentEntries));
+
+        UpdateReceiptPaymentsFromEntries();
+
+        var remaining = PaymentRemainingAmount;
+        PaymentInputText = remaining > 0m
+            ? remaining.ToString("0.00", CultureInfo.InvariantCulture)
+            : string.Empty;
+
+        NotifyPaymentDisplayChanged();
+    }
+
+    private void RemovePaymentEntry(PaymentEntry entry)
+    {
+        _paymentEntries.Remove(entry);
+        OnPropertyChanged(nameof(HasPaymentEntries));
+        UpdateReceiptPaymentsFromEntries();
+        NotifyPaymentDisplayChanged();
+    }
+
+    private void EditPaymentEntry(PaymentEntry entry)
+    {
+        _paymentEntries.Remove(entry);
+        OnPropertyChanged(nameof(HasPaymentEntries));
+        UpdateReceiptPaymentsFromEntries();
+        PaymentMethod = entry.Method;
+        OnPropertyChanged(nameof(IsCashPayment));
+        OnPropertyChanged(nameof(IsCardPayment));
+        OnPropertyChanged(nameof(PaymentMethodTitle));
+        PaymentInputText = entry.Amount.ToString("0.00", CultureInfo.InvariantCulture);
+        NotifyPaymentDisplayChanged();
+    }
+
+    private void SetPaymentQuickAmount(string key)
+    {
+        PaymentInputText = key switch
+        {
+            "REMAINING" => PaymentRemainingAmount.ToString("0.00", CultureInfo.InvariantCulture),
+            _ => key
+        };
+    }
+
+    private void UpdateReceiptPaymentsFromEntries()
+    {
+        CurrentReceipt.CashAmount = _paymentEntries.Where(e => e.Method == "Cash").Sum(e => e.Amount);
+        CurrentReceipt.CardAmount = _paymentEntries.Where(e => e.Method == "Card").Sum(e => e.Amount);
+    }
+
+    private void NotifyPaymentDisplayChanged()
+    {
+        OnPropertyChanged(nameof(PaymentRemainingAmount));
+        OnPropertyChanged(nameof(PaymentChangeAmount));
+        OnPropertyChanged(nameof(HasPaymentRemaining));
+        OnPropertyChanged(nameof(HasPaymentChange));
+        OnPropertyChanged(nameof(TotalAmount));
+        OnPropertyChanged(nameof(ChangeAmount));
+        OnPropertyChanged(nameof(ChangeAmountText));
+        RaiseCommandStates();
+    }
+
     private void CancelPaymentScreen()
     {
-        if (CurrentReceipt.PaidAmount > 0 || !string.IsNullOrWhiteSpace(ReceivedAmountText))
+        if (_paymentEntries.Count > 0)
         {
             AppDialogService.ShowWarning("Ödeme İptal Edildi", "Ödeme ekranı kapatıldı. Satış sepeti korunuyor.");
         }
 
         IsPaymentScreenOpen = false;
+        _paymentEntries.Clear();
         ReceivedAmountText = string.Empty;
+        PaymentInputText = string.Empty;
         CurrentReceipt.ResetPayments();
 
         if (BasketItems.Count == 0)
@@ -1938,6 +2438,7 @@ public sealed class PosViewModel : ViewModelBase
             StartBasketEditing();
         }
 
+        NotifyPaymentDisplayChanged();
         RaiseCommandStates();
     }
 
@@ -2025,24 +2526,23 @@ public sealed class PosViewModel : ViewModelBase
 
     private void RestoreCompletedReceipt(Receipt receipt)
     {
-        var restoredReceipt = CreateReceipt();
+        // Remove from completed history — it's being edited
+        CompletedReceipts.Remove(receipt);
 
-        foreach (var item in receipt.Items)
-        {
-            restoredReceipt.Items.Add(new BasketItem
-            {
-                ProductName = item.ProductName,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                IsLastAdded = false
-            });
-        }
+        // Pre-load payment entries so OpenPaymentScreen can restore them
+        _paymentEntries.Clear();
+        foreach (var entry in receipt.PaymentEntries)
+            _paymentEntries.Add(entry);
+        receipt.PaymentEntries.Clear();
 
-        CurrentReceipt = restoredReceipt;
+        // Use the original receipt object to preserve ReceiptNo, Date, discounts
+        CurrentReceipt = receipt;
+        UpdateReceiptPaymentsFromEntries();
+
         SelectedItem = BasketItems.FirstOrDefault();
         Barcode = string.Empty;
         ReceivedAmountText = string.Empty;
-        LastScannedProduct = $"{receipt.ReceiptNo} tekrar satışa aktarıldı";
+        LastScannedProduct = $"{receipt.ReceiptNo} düzenleniyor";
         LastInvalidBarcode = string.Empty;
         IsPaymentScreenOpen = false;
         IsHeldSalesScreenOpen = false;
@@ -2051,6 +2551,7 @@ public sealed class PosViewModel : ViewModelBase
         StartBasketEditing();
         RefreshDisplayValues();
         RaiseCommandStates();
+        OnPropertyChanged(nameof(HasPaymentEntries));
     }
 
     private void RecallHeldSale(HeldSaleItem heldSale)
@@ -2104,12 +2605,17 @@ public sealed class PosViewModel : ViewModelBase
         var completedReceipt = CurrentReceipt;
         var paymentType = PaymentMethod;
 
+        foreach (var entry in _paymentEntries)
+            completedReceipt.PaymentEntries.Add(entry);
+
         CompletedReceipts.Insert(0, completedReceipt);
 
+        _paymentEntries.Clear();
         CurrentReceipt = CreateReceipt();
         SelectedItem = null;
         Barcode = string.Empty;
         ReceivedAmountText = string.Empty;
+        PaymentInputText = string.Empty;
         LastScannedProduct = $"{completedReceipt.ReceiptNo} tamamlandı";
         LastInvalidBarcode = string.Empty;
         IsScannerInputActive = false;
@@ -2134,12 +2640,19 @@ public sealed class PosViewModel : ViewModelBase
         OnPropertyChanged(nameof(BasketItems));
         OnPropertyChanged(nameof(ItemCount));
         OnPropertyChanged(nameof(ReceiptDiscountSubtotal));
+        OnPropertyChanged(nameof(ReceiptOriginalSubtotal));
+        OnPropertyChanged(nameof(ReceiptLineDiscountValue));
+        OnPropertyChanged(nameof(HasReceiptLineDiscount));
+        OnPropertyChanged(nameof(ReceiptLineDiscountText));
+        OnPropertyChanged(nameof(ReceiptLineDiscountDescription));
         OnPropertyChanged(nameof(ReceiptDiscountValue));
         OnPropertyChanged(nameof(ReceiptDiscountRoundAdjustment));
         OnPropertyChanged(nameof(ReceiptDiscountPreviewTotal));
         OnPropertyChanged(nameof(TotalAmount));
         OnPropertyChanged(nameof(ChangeAmount));
         OnPropertyChanged(nameof(ChangeAmountText));
+        OnPropertyChanged(nameof(HasAnyDiscount));
+        OnPropertyChanged(nameof(TotalSavingsAmount));
         OnPropertyChanged(nameof(ReceiptNo));
         OnPropertyChanged(nameof(HeldSalesCountText));
         OnPropertyChanged(nameof(CompletedReceiptsCountText));
@@ -2187,8 +2700,17 @@ public sealed class PosViewModel : ViewModelBase
         ((RelayCommand)OpenHeldSalesCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenReceiptHistoryCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenProductActionsModalCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)OpenLineItemActionDialogCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)ApplyLineItemActionCommand).RaiseCanExecuteChanged();
         ((RelayCommand)OpenReceiptDiscountCommand).RaiseCanExecuteChanged();
         ((RelayCommand)ApplyReceiptDiscountCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)AppendPaymentNumpadCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)BackspacePaymentNumpadCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)ClearPaymentInputCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)AddPaymentEntryCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)SetPaymentQuickAmountCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)RemovePaymentEntryCommand).RaiseCanExecuteChanged();
+        ((RelayCommand)EditPaymentEntryCommand).RaiseCanExecuteChanged();
     }
 
     private static decimal ParseAmount(string? value)
